@@ -1,0 +1,97 @@
+insert into Instrument_used (Instrument_name) values ('1S10');
+insert into Instrument_used (Instrument_name) values ('1C11');
+insert into Instrument_used (Instrument_name) values ('NA');
+
+select * from Instrument_used;
+
+insert into Name_of_set_if_isogenic (Name_of_set_if_isogenic) values ('ARID1A-set');
+insert into Name_of_set_if_isogenic (Name_of_set_if_isogenic) values ('CDH1-set');
+insert into Name_of_set_if_isogenic (Name_of_set_if_isogenic) values ('KRAS-set');
+insert into Name_of_set_if_isogenic (Name_of_set_if_isogenic) values ('MLH1-set');
+insert into Name_of_set_if_isogenic (Name_of_set_if_isogenic) values ('MSH-set');
+insert into Name_of_set_if_isogenic (Name_of_set_if_isogenic) values ('PTEN-set');
+insert into Name_of_set_if_isogenic (Name_of_set_if_isogenic) values ('RB1-set');
+insert into Name_of_set_if_isogenic (Name_of_set_if_isogenic) values ('TP53-set');
+insert into Name_of_set_if_isogenic (Name_of_set_if_isogenic) values ('NA');
+
+select * from Name_of_set_if_isogenic;
+
+insert into Tissue_type (Tissue_of_origin) values ('ADRENAL_GLAND');
+insert into Tissue_type (Tissue_of_origin) values ('AUTONOMIC_GANGLIA');
+insert into Tissue_type (Tissue_of_origin) values ('BILIARY_TRACT');
+insert into Tissue_type (Tissue_of_origin) values ('BONE');
+insert into Tissue_type (Tissue_of_origin) values ('BREAST');
+insert into Tissue_type (Tissue_of_origin) values ('CENTRAL_NERVOUS_SYSTEM');
+insert into Tissue_type (Tissue_of_origin) values ('CERVIX');
+insert into Tissue_type (Tissue_of_origin) values ('ENDOMETRIUM');
+insert into Tissue_type (Tissue_of_origin) values ('HAEMATOPOIETIC_AND_LYMPHOID_TISSUE');
+insert into Tissue_type (Tissue_of_origin) values ('HEADNECK');
+insert into Tissue_type (Tissue_of_origin) values ('KIDNEY');
+insert into Tissue_type (Tissue_of_origin) values ('LARGE_INTESTINE');
+insert into Tissue_type (Tissue_of_origin) values ('LIVER');
+insert into Tissue_type (Tissue_of_origin) values ('LUNG');
+insert into Tissue_type (Tissue_of_origin) values ('LYMPHOBLASTOMA');
+insert into Tissue_type (Tissue_of_origin) values ('UNKNOWN');
+insert into Tissue_type (Tissue_of_origin) values ('OESOPHAGUS');
+insert into Tissue_type (Tissue_of_origin) values ('OVARY');
+insert into Tissue_type (Tissue_of_origin) values ('PANCREAS');
+insert into Tissue_type (Tissue_of_origin) values ('PLACENTA');
+insert into Tissue_type (Tissue_of_origin) values ('PLEURA');
+insert into Tissue_type (Tissue_of_origin) values ('PROSTATE');
+insert into Tissue_type (Tissue_of_origin) values ('SALIVARY_GLAND');
+insert into Tissue_type (Tissue_of_origin) values ('SKIN');
+insert into Tissue_type (Tissue_of_origin) values ('SMALL_INTESTINE');
+insert into Tissue_type (Tissue_of_origin) values ('SOFT_TISSUE');
+insert into Tissue_type (Tissue_of_origin) values ('STOMACH');
+insert into Tissue_type (Tissue_of_origin) values ('TESTIS');
+insert into Tissue_type (Tissue_of_origin) values ('THYROID');
+insert into Tissue_type (Tissue_of_origin) values ('UPPER_AERODIGESTIVE_TRACT');
+insert into Tissue_type (Tissue_of_origin) values ('URINARY_TRACT');
+insert into Tissue_type (Tissue_of_origin) values ('VULVA');
+
+select * from Tissue_type;
+
+insert into Transfection_reagent_used (Transfection_reagent) values ('Lipofectamine 2000');
+insert into Transfection_reagent_used (Transfection_reagent) values ('Lipofectamine 3000');
+insert into Transfection_reagent_used (Transfection_reagent) values ('Lipofectamine RNAi max');
+insert into Transfection_reagent_used (Transfection_reagent) values ('Dharmafect 3');
+insert into Transfection_reagent_used (Transfection_reagent) values ('Dharmafect 4');
+insert into Transfection_reagent_used (Transfection_reagent) values ('Oligofectamine');
+insert into Transfection_reagent_used (Transfection_reagent) values ('Effectene');
+insert into Transfection_reagent_used (Transfection_reagent) values ('NA');
+
+select * from Transfection_reagent_used;
+
+insert into Plateconf_file_path(Plateconf_file_location) values ('/usr/local/www/html/drug_plate_conf_folder/Plateconf_p11_12.txt');
+
+insert into Plateconf_file_path(Plateconf_file_location) values ('/usr/local/www/html/drug_plate_conf_folder/Plateconf_p11_12_capan1_sum149.txt');
+
+select * from Plateconf_file_path;
+
+insert into Platelist_file_path(Platelist_file_location) values ('/usr/local/www/html/drug_plate_list_folder/Platelist_p11_12.txt');
+insert into Platelist_file_path(Platelist_file_location) values ('/usr/local/www/html/drug_plate_list_folder/Platelist_p11_12_capan1_sum149.txt');
+
+select * from Platelist_file_path;
+
+insert into Compound_library (Compound_library_name) values ('Compoundlibrary_p11_12');
+
+select * from Compound_library;
+
+insert into Compound_library_file_path (Compound_library_file_location) values ('/usr/local/www/html/compound_library_folder/Compoundlibrary_p11_12.txt');
+
+select * from Compound_library_file_path;
+
+BEGIN;
+
+LOAD DATA LOCAL INFILE '/Rnaidb_git/icr-gft-drugdb/compound_library_folder/Compoundlibrary_p11_12.txt' INTO TABLE Compound_library_file FIELDS TERMINATED BY "\t" LINES TERMINATED BY "\n" IGNORE 1 LINES (@vPlate_complib, @vWell_complib, @vCompound, @vFunction_of_compound, @vCAS, @vLayout, @vConcentration_pM) SET Plate_complib = nullif(@vPlate_complib, ''), Well_complib = nullif(@vWell_complib,''), Compound=nullif(@vCompound,''), Function_of_compound = nullif(@vFunction_of_compound,''), CAS = nullif(@vCAS,''), Layout = nullif(@vLayout,''), Concentration_pM = nullif(@vConcentration_pM,'');
+
+UPDATE Compound_library_file SET Compound_library_Compound_library_ID = (select Compound_library_ID from Compound_library where Compound_library_name='Compoundlibrary_p11_12') 
+WHERE Compound_library_Compound_library_ID IS NULL;
+
+select * from Compound_library_file where Well_complib='A03';
+
+COMMIT;
+
+
+
+
