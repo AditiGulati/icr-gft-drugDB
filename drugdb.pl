@@ -310,6 +310,27 @@ sub add_new_screen {
 										    	b.value = \"\";
 										    }
 										  }    
+										  function make_collab_Blank() {
+										    var b = document.getElementById( \"CollaboratoR\" );
+										    if (b.value ==\"Enter name of collaborator\")
+										    {
+										    	b.value = \"\";
+										    }
+										  }   
+										  function make_cellsPerWell_Blank() {
+										    var b = document.getElementById( \"CellsperwelL\" );
+										    if (b.value ==\"Enter cell number\")
+										    {
+										    	b.value = \"\";
+										    }
+										  }    
+										  function make_lengthOfAssay_Blank() {
+										    var b = document.getElementById( \"LengthofassaY\" );
+										    if (b.value ==\"Enter length of assay\")
+										    {
+										    	b.value = \"\";
+										    }
+										  } 
 										  function enableText() {
 										    if(document.addNewScreen.is_isogenic.checked) {
 										      document.addNewScreen.gene_name_if_isogenic.disabled = false;
@@ -424,14 +445,18 @@ sub add_new_screen {
 										      alert ( \"Please enter your name.\" );
 										      return false;
 										    }
+										    if ( form[\"cells_per_well\"].value == \"Enter cell number\" ) {
+										      alert ( \"Please enter number of cells per well.\" );
+										      return false;
+										    }
 										    if ( document.addNewScreen.instrument.selectedIndex == 0 ) {
 										      alert ( \"Please select instrument used for this screen.\" );
 										      return false;
 										    } 
 										    var answer = confirm(\"Please make sure the data are correct. Don't forget to complete the isogenic/drugscreen part of the form if it's relevant. The data once saved cannot be edited easily.\")
 										  	return answer;
-										  }
-										  </script>
+										  }	
+       									  </script>
 				   						  </head>
 				   						  <body>
 				   						  <div id=\"Box\"></div><div id=\"MainFullWidth\">
@@ -536,7 +561,7 @@ sub add_new_screen {
                          -maxlength => 256,
                          -id => "xls_file3" );
   print "<br />";
-
+   
   ## get the existing platelist filenames from the database and display them in the popup menu ##
   
   $query = "SELECT Platelist_file_location FROM Platelist_file_path";
@@ -734,7 +759,31 @@ sub add_new_screen {
                           -size => "30",
                           -maxlength => "45",
                           -id => "OperatoR");
-
+                          
+  print "</p><p>";
+                    
+  ## get number of cell per well ##
+                          
+  print "No. of cells per well:<br />";
+  print $q -> textfield ( -name => "cells_per_well",
+                          -value => 'Enter cell number',
+                          -size => "30",
+                          -maxlength => "45",
+                          -onClick => "make_cellsPerWell_Blank()",
+                          -id => "CellsperwelL");
+                          
+  print "</p><p>";
+                          
+  ## get the collaborator ##
+  
+  print "Collaborator:<br />";
+  print $q -> textfield ( -name => "collaborator",
+                          -value => 'Enter name of collaborator',
+                          -size => "30",
+                          -maxlength => "45",
+                          -onClick => "make_collab_Blank()",
+                          -id => "CollaboratoR");
+                          
   ## get the instrument name from the database ##
   
   print "</p><p>Instrument:<br />";
@@ -744,6 +793,22 @@ sub add_new_screen {
   					       -value => \@instrument,
   						   -default => 'Please select',
   						   -id => "InstrumenT" );
+  print "</p>";
+  
+   print "</p><p>";
+                          
+  ## get the length of assay ##
+  
+  print "Length of assay:<br />";
+  print $q -> textfield ( -name => "length_of_assay",
+                          -value => 'Enter length of assay',
+                          -size => "30",
+                          -maxlength => "45",
+                          -onClick => "make_lengthOfAssay_Blank()",
+                          -id => "LengthofassaY");
+
+  print "<p>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp</p>";
+                          
   print "<p><b>Analyse and save results:</b><br />";
   print "<input type=\"submit\" id=\"save_new_screen\" value=\"Analyse and save results\" name=\"save_new_screen\" />";
   print "</p>";
@@ -1163,6 +1228,9 @@ sub save_new_screen {
   my $cell_line_name = $q -> param( "cell_line_name" );
   my $date_of_run = $q -> param( "date_of_run" );
   my $operator = $q -> param( "operator" );
+  my $collaborator = $q -> param( "collaborator" );
+  my $cells_per_well = $q -> param( "cells_per_well" );
+  my $length_of_assay = $q -> param( "length_of_assay" );
   my $transfection_reagent = $q -> param( "transfection_reagent" );
   my $instrument = $q -> param( "instrument" );
   my $is_isogenic = $q -> param( "is_isogenic" );
@@ -1188,7 +1256,7 @@ sub save_new_screen {
 	$cell_line_name =~ s/^\s+//g;
 	$cell_line_name =~ s/[^A-Z0-9]*//g;
 		  		
-	my $query = "SELECT Tissue_type_Tissue_type_ID FROM Cell_line where Cell_line_name= '$cell_line_name'";
+	my $query = "SELECT Tissue_type_Tissue_type_ID FROM Cell_line where Cell_line_name = '$cell_line_name'";
 	my $query_handle = $dbh -> prepare ( $query );
 	$query_handle->execute();
 	my $tissue_type_tissue_type_id = $query_handle -> fetchrow_array;
@@ -1266,21 +1334,42 @@ sub save_new_screen {
   $compound_concentration =~ s/^\s+//g;
   $compound_concentration =~ s/[^A-Za-z0-9_-]*//g;
   
+  if ( $collaborator == "Enter name of collaborator"  || $collaborator == "" ) {
+    $collaborator = "NA";
+  }
+  if ( $length_of_assay == "Enter length of assay"  || $length_of_assay == "" ) {
+    $length_of_assay = "NA";
+  }
   my $guide_file;
   
-  if ( not defined ($screen_dir_name) & ($templib == "Compoundlibrary_p11_12") ) {
+  if ( not defined ($screen_dir_name) & ($templib != "Compoundlibrary_p13") ) {
     $screen_dir_name = $tissue_type ."_". $cell_line_name ."_". $date_of_run . "_p11_12_sA";
-    if ( $is_isogenic eq 'ON' & ($templib == "Compoundlibrary_p11_12") )
+    if ( $is_isogenic eq 'ON' & ($templib != "Compoundlibrary_p13") )
     {
     	$screen_dir_name = "IS" . "_" . $tissue_type . "_" . $cell_line_name . "_" . $gene_name_if_isogenic . "_" . $date_of_run . "_p11_12_sA";
     }
-    if (($is_drug_screen eq 'ON') & ($templib == "Compoundlibrary_p11_12") & (defined($compound_concentration)))
+    if (($is_drug_screen eq 'ON') & ($templib != "Compoundlibrary_p13") & (defined($compound_concentration)))
     {
     	$screen_dir_name = $tissue_type . "_" . $cell_line_name . "_" . $compound . "_" . $compound_concentration . "_" . $date_of_run . "_p11_12_dA";
     }
-    if (($is_drug_screen eq 'ON') & ($templib == "Compoundlibrary_p11_12") & (not defined($compound_concentration)))
+    if (($is_drug_screen eq 'ON') & ($templib != "Compoundlibrary_p13") & (not defined($compound_concentration)))
     {
-    	$screen_dir_name = "dA" . "_" . $tissue_type . "_" . $cell_line_name . "_" . $compound . "_" . $date_of_run . "_p11_12_dA";
+    	$screen_dir_name = $tissue_type . "_" . $cell_line_name . "_" . $compound . "_" . $date_of_run . "_p11_12_dA";
+    }
+  }
+  if ( not defined ($screen_dir_name) & ($templib == "Compoundlibrary_p13") ) {
+    $screen_dir_name = $tissue_type ."_". $cell_line_name ."_". $date_of_run . "_p13_sA";
+    if ( $is_isogenic eq 'ON' & ($templib == "Compoundlibrary_p13") )
+    {
+    	$screen_dir_name = "IS" . "_" . $tissue_type . "_" . $cell_line_name . "_" . $gene_name_if_isogenic . "_" . $date_of_run . "_p13_sA";
+    }
+    if (($is_drug_screen eq 'ON') & ($templib == "Compoundlibrary_p13") & (defined($compound_concentration)))
+    {
+    	$screen_dir_name = $tissue_type . "_" . $cell_line_name . "_" . $compound . "_" . $compound_concentration . "_" . $date_of_run . "_p13_dA";
+    }
+    if (($is_drug_screen eq 'ON') & ($templib == "Compoundlibrary_p13") & (not defined($compound_concentration)))
+    {
+    	$screen_dir_name = $tissue_type . "_" . $cell_line_name . "_" . $compound . "_" . $date_of_run . "_p13_dA";
     }
   }
   my $screenDir_path = $configures{'screenDir_path'};
@@ -1714,7 +1803,10 @@ sub save_new_screen {
 						  Cell_line,    
 						  Drug_screen_name,    
 						  Date_of_run,    
-						  Operator,    
+						  Operator,  
+						  Collaborator,
+						  Cells_per_well,
+						  Length_of_assay,  
 						  Is_isogenic,    
 						  Gene_name_if_isogenic,    
 						  Isogenic_mutant_description,    
@@ -1746,6 +1838,9 @@ sub save_new_screen {
 						  	'$screen_dir_name',
 						  	'$date_of_run', 
 						  	'$operator',
+						  	'$collaborator',
+						  	'$cells_per_well',
+						  	'$length_of_assay',
 						  	'$is_isogenic_screen',
 						  	'$gene_name_if_isogenic',
 						  	'$isogenic_mutant_description',
@@ -2698,6 +2793,9 @@ sub show_all_screens {
 		      r.Cell_line, 
 			  r.Date_of_run,
 			  r.Operator,
+			  r.Collaborator,
+			  r.Cells_per_well,
+			  r.Length_of_assay,
 			  i.Instrument_name,
 			  r.Compound_library_name,
 			  r.Plate_list_file_name,
@@ -2733,6 +2831,9 @@ sub show_all_screens {
 			  r.Cell_line,
 			  r.Date_of_run,
 			  r.Operator,
+			  r.Collaborator,
+			  r.Cells_per_well,
+			  r.Length_of_assay,
 			  i.Instrument_name,
 			  r.Compound_library_name,
 			  r.Plate_list_file_name,
@@ -2762,7 +2863,7 @@ sub show_all_screens {
 			  r.Method_of_isogenic_knockdown != 'NA' AND
 			  n.Name_of_set_if_isogenic_ID != '9' AND
 			  r.Name_of_set_if_isogenic_Name_of_set_if_isogenic_ID = n.Name_of_set_if_isogenic_ID GROUP BY 
-			  r.Drug_screen_info_ID order by Date_of_run DESC";
+			  r.Drug_screen_info_ID order by Cell_line ASC";
     
   my $query_handle = $dbh -> prepare ( $query );
    					   #or die "Cannot prepare: " . $dbh -> errstr();
@@ -2873,6 +2974,42 @@ sub show_all_screens {
   
   print "<th>";
   print "Link to DRC file";
+  print "</th>";
+  
+  print "<th>";
+  print "    ";
+  print "</th>"; 
+  
+  print "<th>";
+  print "    ";
+  print "</th>"; 
+  
+  print "<th>";
+  print "Collaborator";
+  print "</th>";
+  
+  print "<th>";
+  print "    ";
+  print "</th>"; 
+  
+  print "<th>";
+  print "    ";
+  print "</th>"; 
+  
+  print "<th>";
+  print "Cells per well";
+  print "</th>";
+  
+  print "<th>";
+  print "    ";
+  print "</th>"; 
+  
+  print "<th>";
+  print "    ";
+  print "</th>"; 
+  
+  print "<th>";
+  print "Length of assay";
   print "</th>";
   
   print "<th>";
@@ -3080,7 +3217,7 @@ sub show_all_screens {
     print "</td>";
    
     print "<td>";
-    print "<a href=\"$row[17]\" >Z-score analysis report</a>";
+    print "<a href=\"$row[20]\" >Z-score analysis report</a>";
     print "</td>"; 
     
     print "<td>";
@@ -3092,7 +3229,7 @@ sub show_all_screens {
     print "</td>"; 
    
     print "<td>";
-    print "<a href=\"$row[18]\" >POC analysis report</a>";
+    print "<a href=\"$row[21]\" >POC analysis report</a>";
     print "</td>"; 
     
     print "<td>";
@@ -3116,7 +3253,7 @@ sub show_all_screens {
     print "</td>"; 
     
     print "<td>";
-    print "<a href=\"$row[19]\" >View/download DRC plots</a>";
+    print "<a href=\"$row[22]\" >View/download DRC plots</a>";
     print "</td>"; 
     
     print "<td>";
@@ -3128,7 +3265,7 @@ sub show_all_screens {
     print "</td>"; 
     
     print "<td>";
-    print "<a href=\"$row[20]\" >View/download DRC results</a>";
+    print "<a href=\"$row[23]\" >View/download DRC results</a>";
     print "</td>"; 
     
     print "<td>";
@@ -3269,6 +3406,42 @@ sub show_all_screens {
     
     print "<td>";
     print "$row[16]";
+    print "</td>";
+    
+    print "<td>";
+    print "    ";
+    print "</td>";
+    
+    print "<td>";
+    print "    ";
+    print "</td>"; 
+    
+    print "<td>";
+    print "$row[17]";
+    print "</td>";
+    
+    print "<td>";
+    print "    ";
+    print "</td>";
+    
+    print "<td>";
+    print "    ";
+    print "</td>"; 
+    
+    print "<td>";
+    print "$row[18]";
+    print "</td>";
+    
+     print "<td>";
+    print "    ";
+    print "</td>";
+    
+    print "<td>";
+    print "    ";
+    print "</td>"; 
+    
+    print "<td>";
+    print "$row[19]";
     print "</td>";
     
     print "</td>";
