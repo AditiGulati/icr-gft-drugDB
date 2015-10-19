@@ -77,7 +77,23 @@ insert into Compound_library (Compound_library_name) values ('Compoundlibrary_p1
 
 select * from Compound_library;
 
+insert into Compound_library (Compound_library_name) values ('CompoundLibrary_p13');
+
+select * from Compound_library;
+
+insert into Compound_library (Compound_library_name) values ('FulvestrantAnalogues_HP');
+
+select * from Compound_library;
+
 insert into Compound_library_file_path (Compound_library_file_location) values ('/usr/local/www/html/compound_library_folder/Compoundlibrary_p11_12.txt');
+
+select * from Compound_library_file_path;
+
+insert into Compound_library_file_path (Compound_library_file_location) values ('/usr/local/www/html/compound_library_folder/CompoundLibrary13.txt');
+
+select * from Compound_library_file_path;
+
+insert into Compound_library_file_path (Compound_library_file_location) values ('/usr/local/www/html/compound_library_folder/FulvestrantAnalogues_HP.txt');
 
 select * from Compound_library_file_path;
 
@@ -91,6 +107,29 @@ WHERE Compound_library_Compound_library_ID IS NULL;
 select * from Compound_library_file where Well_complib='A03';
 
 COMMIT;
+
+BEGIN;
+
+LOAD DATA LOCAL INFILE '/Rnaidb_git/icr-gft-drugdb/compound_library_folder/CompoundLibrary_p13.txt' INTO TABLE Compound_library_file FIELDS TERMINATED BY "\t" LINES TERMINATED BY "\n" IGNORE 1 LINES (@vPlate_complib, @vWell_complib, @vCompound, @vFunction_of_compound, @vCAS, @vLayout, @vConcentration_pM) SET Plate_complib = nullif(@vPlate_complib, ''), Well_complib = nullif(@vWell_complib,''), Compound=nullif(@vCompound,''), Function_of_compound = nullif(@vFunction_of_compound,''), CAS = nullif(@vCAS,''), Layout = nullif(@vLayout,''), Concentration_pM = nullif(@vConcentration_pM,'');
+
+UPDATE Compound_library_file SET Compound_library_Compound_library_ID = (select Compound_library_ID from Compound_library where Compound_library_name='CompoundLibrary_p13') 
+WHERE Compound_library_Compound_library_ID IS NULL;
+
+select * from Compound_library_file where Well_complib='A03';
+
+COMMIT;
+
+BEGIN;
+
+LOAD DATA LOCAL INFILE '/Rnaidb_git/icr-gft-drugdb/compound_library_folder/FulvestrantAnalogues_HP.txt' INTO TABLE Compound_library_file FIELDS TERMINATED BY "\t" LINES TERMINATED BY "\n" IGNORE 1 LINES (@vPlate_complib, @vWell_complib, @vCompound, @vFunction_of_compound, @vCAS, @vLayout, @vConcentration_pM) SET Plate_complib = nullif(@vPlate_complib, ''), Well_complib = nullif(@vWell_complib,''), Compound=nullif(@vCompound,''), Function_of_compound = nullif(@vFunction_of_compound,''), CAS = nullif(@vCAS,''), Layout = nullif(@vLayout,''), Concentration_pM = nullif(@vConcentration_pM,'');
+
+UPDATE Compound_library_file SET Compound_library_Compound_library_ID = (select Compound_library_ID from Compound_library where Compound_library_name='FulvestrantAnalogues_HP') 
+WHERE Compound_library_Compound_library_ID IS NULL;
+
+select * from Compound_library_file where Well_complib='A03';
+
+COMMIT;
+
 
 
 

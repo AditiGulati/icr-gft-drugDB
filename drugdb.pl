@@ -334,15 +334,11 @@ sub add_new_screen {
 										  function enableText() {
 										    if(document.addNewScreen.is_isogenic.checked) {
 										      document.addNewScreen.gene_name_if_isogenic.disabled = false;
-										      document.addNewScreen.isogenicSet.disabled = false;
-										      document.addNewScreen.name_of_set_if_isogenic.disabled = false;
 										      document.addNewScreen.isogenic_mutant_description.disabled = false;
 										      document.addNewScreen.method_of_isogenic_knockdown.disabled = false;
 										    }
 										    else {
 										      document.addNewScreen.gene_name_if_isogenic.disabled = true;
-										      document.addNewScreen.isogenicSet.disabled = true;
-										      document.addNewScreen.name_of_set_if_isogenic.disabled = true;
 										      document.addNewScreen.isogenic_mutant_description.disabled = true;
 										      document.addNewScreen.method_of_isogenic_knockdown.disabled = true;
 										    }
@@ -364,13 +360,6 @@ sub add_new_screen {
 										    if(c.value == \"Enter gene name\")
 										    {
 										    	c.value = \"\";
-										    }
-										  } 
-										  function make_isogenic_Set_Blank() {
-										    var d = document.getElementById( \"isogenic_Set\" );
-										    if (d.value == \"Enter isogenic set name\")
-										    {
-										    	d.value = \"\";
 										    }
 										  } 
 										  function make_isogenicDescription_Blank() {
@@ -853,35 +842,35 @@ sub add_new_screen {
    
  ## get the existing isogenic sets from the database and display them in the popup menu ##
  
- $ISOGENIC_SET = $dbh -> selectcol_arrayref ( "SELECT Name_of_set_if_isogenic FROM Name_of_set_if_isogenic WHERE Name_of_set_if_isogenic != 'NA'" )
-                   or die "Cannot prepare: " . $dbh->errstr();
- unshift( $ISOGENIC_SET, "Please select" );
+# $ISOGENIC_SET = $dbh -> selectcol_arrayref ( "SELECT Name_of_set_if_isogenic FROM Name_of_set_if_isogenic WHERE Name_of_set_if_isogenic != 'NA'" )
+#                   or die "Cannot prepare: " . $dbh->errstr();
+# unshift( $ISOGENIC_SET, "Please select" );
  
-  print "<p>";
+#  print "<p>";
 
-  print "<p>Select isogenic set:<br />";
+#  print "<p>Select isogenic set:<br />";
     
-  print $q -> popup_menu (-name =>'isogenicSet',
-  						  -value => $ISOGENIC_SET,
-   	                      -default =>'Please select',
-   	                      -disabled );
+#  print $q -> popup_menu (-name =>'isogenicSet',
+#  						  -value => $ISOGENIC_SET,
+#  	                      -default =>'Please select',
+#   	                      -disabled );
 
-  print " - OR";
-  print "<p>";
-  print "</p>";  
+#  print " - OR";
+#  print "<p>";
+#  print "</p>";  
   
   ## enter isogenic set name ##
   
-  print "Enter isogenic set:<br />";
-  print $q -> textfield ( -name => "name_of_set_if_isogenic",
-                          -value => 'Enter isogenic set name',                         
-                          -size => "30",
-                          -maxlength => "45",
-                          -onClick => "make_isogenic_Set_Blank()",
-                          -id => "isogenic_Set",
-                          -disabled );
+#  print "Enter isogenic set:<br />";
+#  print $q -> textfield ( -name => "name_of_set_if_isogenic",
+#                          -value => 'Enter isogenic set name',                         
+ #                         -size => "30",
+ #                         -maxlength => "45",
+ #                         -onClick => "make_isogenic_Set_Blank()",
+ #                         -id => "isogenic_Set",
+ #                         -disabled );
                           
-  print "</p><p>";
+ # print "</p><p>";
    
   ## get isogenic mutant description ##
   
@@ -1019,9 +1008,7 @@ sub add_new_files {
   print $q -> header ( "text/html" );
   print "$page_header";
   print "<h1>Add new file(s):</h1>";
-  
 
-  
   ## Downloading/uploading platelist file ## 
   
   print $q -> start_multipart_form ( -method => "POST" ); 
@@ -1231,12 +1218,10 @@ sub save_new_screen {
   my $collaborator = $q -> param( "collaborator" );
   my $cells_per_well = $q -> param( "cells_per_well" );
   my $length_of_assay = $q -> param( "length_of_assay" );
-  my $transfection_reagent = $q -> param( "transfection_reagent" );
   my $instrument = $q -> param( "instrument" );
   my $is_isogenic = $q -> param( "is_isogenic" );
   my $is_drug_screen = $q -> param ( "is_drug_screen" );
   my $gene_name_if_isogenic = $q -> param( "gene_name_if_isogenic" );
-  my $new_isogenic_set = $q ->  param( "name_of_set_if_isogenic" );
   my $isogenic_mutant_description = $q -> param( "isogenic_mutant_description" );
   my $method_of_isogenic_knockdown = $q -> param( "method_of_isogenic_knockdown" );
   my $compound = $q -> param( "compound" );
@@ -1329,47 +1314,100 @@ sub save_new_screen {
   my $screenDescription_filename;
   
   $compound =~ s/^\s+//g;
-  $compound =~ s/[^A-Za-z0-9_-]*//g;
+  $compound =~ s/\//-/g;
   
   $compound_concentration =~ s/^\s+//g;
-  $compound_concentration =~ s/[^A-Za-z0-9_-]*//g;
+  $compound_concentration =~ s/\//-/g;
   
-  if ( $collaborator == "Enter name of collaborator"  || $collaborator == "" ) {
+  if ( $collaborator == "Enter name of collaborator" || $collaborator == "" ) {
     $collaborator = "NA";
   }
-  if ( $length_of_assay == "Enter length of assay"  || $length_of_assay == "" ) {
+  if ( $length_of_assay == "Enter length of assay" || $length_of_assay == "" ) {
     $length_of_assay = "NA";
+  }
+  
+   if ( $compound_concentration == "e.g. 100 ng") {
+    $compound_concentration = "";
+  }
+  
+   if ( $isogenic_mutant_description == "e.g. parental") {
+    $isogenic_mutant_description = "";
   }
   my $guide_file;
   
-  if ( not defined ($screen_dir_name) & ($templib != "Compoundlibrary_p13") ) {
-    $screen_dir_name = $tissue_type ."_". $cell_line_name ."_". $date_of_run . "_p11_12_sA";
-    if ( $is_isogenic eq 'ON' & ($templib != "Compoundlibrary_p13") )
+    if ( not defined ($screen_dir_name) & (index($templib, "11_12")) ) {
+   
+      $screen_dir_name = $tissue_type ."_". $cell_line_name ."_". $date_of_run . "_p11_12_sA";
+    
+    if ( ($is_isogenic eq 'ON') & (index($templib, "11_12")) )
     {
-    	$screen_dir_name = "IS" . "_" . $tissue_type . "_" . $cell_line_name . "_" . $gene_name_if_isogenic . "_" . $date_of_run . "_p11_12_sA";
+    	$screen_dir_name = "IS" . "_" . $tissue_type . "_" . $cell_line_name . "_" . $gene_name_if_isogenic . "_" . $isogenic_mutant_description . "_" . $date_of_run . "_p11_12_sA";
     }
-    if (($is_drug_screen eq 'ON') & ($templib != "Compoundlibrary_p13") & (defined($compound_concentration)))
+    if (($is_isogenic ne 'ON') & ($is_drug_screen eq 'ON') & (index($templib, "11_12")) & (defined($compound_concentration)))
     {
     	$screen_dir_name = $tissue_type . "_" . $cell_line_name . "_" . $compound . "_" . $compound_concentration . "_" . $date_of_run . "_p11_12_dA";
     }
-    if (($is_drug_screen eq 'ON') & ($templib != "Compoundlibrary_p13") & (not defined($compound_concentration)))
+    if (($is_isogenic eq 'ON') & ($is_drug_screen eq 'ON') & (index($templib, "11_12")) & (defined($compound_concentration)))
+    {
+    	$screen_dir_name = "IS" . "_" . $tissue_type . "_" . $cell_line_name . "_" . $gene_name_if_isogenic . "_" . $isogenic_mutant_description . "_" . $compound . "_" . $compound_concentration . "_" . $date_of_run . "_p11_12_dA";
+    }
+    if (($is_isogenic ne 'ON') & ($is_drug_screen eq 'ON') & (index($templib, "11_12")) & (not defined($compound_concentration)))
     {
     	$screen_dir_name = $tissue_type . "_" . $cell_line_name . "_" . $compound . "_" . $date_of_run . "_p11_12_dA";
     }
-  }
-  if ( not defined ($screen_dir_name) & ($templib == "Compoundlibrary_p13") ) {
-    $screen_dir_name = $tissue_type ."_". $cell_line_name ."_". $date_of_run . "_p13_sA";
-    if ( $is_isogenic eq 'ON' & ($templib == "Compoundlibrary_p13") )
+     if (($is_isogenic eq 'ON') & ($is_drug_screen eq 'ON') & (index($templib, "11_12")) & (not defined($compound_concentration)))
     {
-    	$screen_dir_name = "IS" . "_" . $tissue_type . "_" . $cell_line_name . "_" . $gene_name_if_isogenic . "_" . $date_of_run . "_p13_sA";
+    	$screen_dir_name = "IS" . "_" . $tissue_type . "_" . $cell_line_name . "_" . $gene_name_if_isogenic . "_" . $isogenic_mutant_description . "_" . $compound . "_" . $date_of_run . "_p11_12_dA";
     }
-    if (($is_drug_screen eq 'ON') & ($templib == "Compoundlibrary_p13") & (defined($compound_concentration)))
+  }
+  if ( not defined ($screen_dir_name) & (index($templib, "p13")) ) {
+  
+    $screen_dir_name = $tissue_type ."_". $cell_line_name ."_". $date_of_run . "_p13_sA";
+    
+    if ( ($is_isogenic eq 'ON') & (index($templib, "p13")) )
+    {
+    	$screen_dir_name = "IS" . "_" . $tissue_type . "_" . $cell_line_name . "_" . $gene_name_if_isogenic . "_" . $isogenic_mutant_description . "_" . $date_of_run . "_p13_sA";
+    }
+    if (($is_isogenic ne 'ON') & ($is_drug_screen eq 'ON') & (index($templib, "p13")) & (defined($compound_concentration)))
     {
     	$screen_dir_name = $tissue_type . "_" . $cell_line_name . "_" . $compound . "_" . $compound_concentration . "_" . $date_of_run . "_p13_dA";
     }
-    if (($is_drug_screen eq 'ON') & ($templib == "Compoundlibrary_p13") & (not defined($compound_concentration)))
+    if (($is_isogenic eq 'ON') & ($is_drug_screen eq 'ON') & (index($templib, "p13")) & (defined($compound_concentration)))
+    {
+    	$screen_dir_name = "IS" . "_" . $tissue_type . "_" . $cell_line_name . "_" . $gene_name_if_isogenic . "_" . $isogenic_mutant_description . "_" . $compound . "_" . $compound_concentration . "_" . $date_of_run . "_p13_dA";
+    }
+    if (($is_isogenic ne 'ON') & ($is_drug_screen eq 'ON') & (index($templib, "p13")) & (not defined($compound_concentration)))
     {
     	$screen_dir_name = $tissue_type . "_" . $cell_line_name . "_" . $compound . "_" . $date_of_run . "_p13_dA";
+    }
+     if (($is_isogenic eq 'ON') & ($is_drug_screen eq 'ON') & (index($templib, "p13")) & (not defined($compound_concentration)))
+    {
+    	$screen_dir_name = "IS" . "_" . $tissue_type . "_" . $cell_line_name . "_" . $gene_name_if_isogenic . "_" . $isogenic_mutant_description . "_" . $compound . "_" . $date_of_run . "_p13_dA";
+    }
+  }
+   if ( not defined ($screen_dir_name) & (index($templib, "FAnalogues")) ) {
+  
+    $screen_dir_name = $tissue_type ."_". $cell_line_name ."_". $date_of_run . "_FAnalogues_sA";
+    
+    if ( ($is_isogenic eq 'ON') & (index($templib, "FAnalogues")) )
+    {
+    	$screen_dir_name = "IS" . "_" . $tissue_type . "_" . $cell_line_name . "_" . $gene_name_if_isogenic . "_" . $date_of_run . "_FAnalogues_sA";
+    }
+    if (($is_isogenic ne 'ON') & ($is_drug_screen eq 'ON') & (index($templib, "FAnalogues")) & (defined($compound_concentration)))
+    {
+    	$screen_dir_name = $tissue_type . "_" . $cell_line_name . "_" . $compound . "_" . $compound_concentration . "_" . $date_of_run . "_FAnalogues_dA";
+    }
+    if (($is_isogenic eq 'ON') & ($is_drug_screen eq 'ON') & (index($templib, "FAnalogues")) & (defined($compound_concentration)))
+    {
+    	$screen_dir_name = "IS" . "_" . $tissue_type . "_" . $cell_line_name . "_" . $gene_name_if_isogenic . "_" . $compound . "_" . $compound_concentration . "_" . $date_of_run . "_FAnalogues_dA";
+    }
+    if (($is_isogenic ne 'ON') & ($is_drug_screen eq 'ON') & (index($templib, "FAnalogues")) & (not defined($compound_concentration)))
+    {
+    	$screen_dir_name = $tissue_type . "_" . $cell_line_name . "_" . $compound . "_" . $date_of_run . "_FAnalogues_dA";
+    }
+     if (($is_isogenic eq 'ON') & ($is_drug_screen eq 'ON') & (index($templib, "FAnalogues")) & (not defined($compound_concentration)))
+    {
+    	$screen_dir_name = "IS" . "_" . $tissue_type . "_" . $cell_line_name . "_" . $gene_name_if_isogenic . "_" . $compound . "_" . $date_of_run . "_FAnalogues_dA";
     }
   }
   my $screenDir_path = $configures{'screenDir_path'};
@@ -1759,26 +1797,26 @@ sub save_new_screen {
   
   if ($is_isogenic eq 'ON') {
     $is_isogenic_screen = "YES";
-    if ( $ISOGENIC_SET eq "Please select" ) {
-      my $query = "INSERT INTO Name_of_set_if_isogenic ( 
-        					   Name_of_set_if_isogenic) 
-        					   VALUES (
-        					   '$new_isogenic_set' )";
-      my $query_handle = $dbh -> prepare ( $query );
+   # if ( $ISOGENIC_SET eq "Please select" ) {
+   #   my $query = "INSERT INTO Name_of_set_if_isogenic ( 
+    #    					   Name_of_set_if_isogenic) 
+     #   					   VALUES (
+     #   					   '$new_isogenic_set' )";
+     # my $query_handle = $dbh -> prepare ( $query );
    					      # or die "Cannot prepare: " . $dbh -> errstr();
-      $query_handle -> execute();
+     # $query_handle -> execute();
         #or die "SQL Error: ".$query_handle -> errstr();    
-      $ISOGENIC_SET = $new_isogenic_set;
+   #   $ISOGENIC_SET = $new_isogenic_set;
       #$query_handle->finish();
-    }
+   # }
   }
   else {
     $is_isogenic_screen = "NO";
     $gene_name_if_isogenic = "NA";
     $isogenic_mutant_description = "NA";
     $method_of_isogenic_knockdown = "NA";
-    $ISOGENIC_SET = "NA";
-    $new_isogenic_set = "NA";
+ #   $ISOGENIC_SET = "NA";
+ #   $new_isogenic_set = "NA";
   }
   
   if ($is_drug_screen eq 'ON')
@@ -1799,75 +1837,71 @@ sub save_new_screen {
   
   ## 3. Store new Rnai screen metadata in the database ##
   my $zp_value;
-  $query = "INSERT INTO Drug_screen_info (      
-						  Cell_line,    
-						  Drug_screen_name,    
-						  Date_of_run,    
-						  Operator,  
-						  Collaborator,
-						  Cells_per_well,
-						  Length_of_assay,  
-						  Is_isogenic,    
-						  Gene_name_if_isogenic,    
-						  Isogenic_mutant_description,    
-						  Method_of_isogenic_knockdown,
-						  Compound,
-						  Compound_concentration,   
-						  Dosing_regime,
-						  Compound_library_name,    
-						  Plate_list_file_name,    
-						  Plate_conf_file_name,   
-						  Drug_screen_link_to_z_report,
-						  Drug_screen_link_to_poc_report,
-						  Drug_screen_link_to_qc_plots,
-						  Drug_screen_link_to_drc_plots,
-						  Drug_screen_link_to_drc_file,
-						  Zprime,  
-						  Notes,   
-						  Name_of_set_if_isogenic_Name_of_set_if_isogenic_ID, 
-						  Instrument_used_Instrument_used_ID,   
-						  Tissue_type_Tissue_type_ID,    
-						  Transfection_reagent_used_Transfection_reagent_used_ID,    
-						  Compound_library_file_path_Compound_library_file_path_ID,
-						  Plateconf_file_path_Plateconf_file_path_ID,
-						  Platelist_file_path_Platelist_file_path_ID,
-						  Compound_library_Compound_library_ID 
-						  ) 
-						  SELECT 
-						  	'$cell_line_name',
-						  	'$screen_dir_name',
-						  	'$date_of_run', 
-						  	'$operator',
-						  	'$collaborator',
-						  	'$cells_per_well',
-						  	'$length_of_assay',
-						  	'$is_isogenic_screen',
-						  	'$gene_name_if_isogenic',
-						  	'$isogenic_mutant_description',
-						  	'$method_of_isogenic_knockdown',
-						  	'$compound',
-						  	'$compound_concentration',
-						  	'$dosing_regime',
-						  	'$templib',
-						  	'$platelist',
-						  	'$plateconf',
-						  	'$rnai_screen_link_to_z_report',
-						  	'$rnai_screen_link_to_poc_report',
-						  	'$rnai_screen_link_to_qc_plots',
-						  	'$drug_screen_link_to_drc_plots',
-						  	'$drug_screen_link_to_drc_file',
-						  	#'$zp_value',
-						  	'NA',
-						  	'$notes', 
-						  	( SELECT Name_of_set_if_isogenic_ID FROM Name_of_set_if_isogenic WHERE Name_of_set_if_isogenic = '$ISOGENIC_SET' ), 
-						  	( SELECT Instrument_used_ID FROM Instrument_used WHERE Instrument_name = '$instrument' ),
-						  	( SELECT Tissue_type_ID FROM Tissue_type WHERE Tissue_of_origin = '$tissue_type' ), 
-						  	( SELECT Transfection_reagent_used_ID FROM Transfection_reagent_used WHERE Transfection_reagent = '$transfection_reagent' ), 
-						  	( SELECT Compound_library_file_path_ID FROM Compound_library_file_path WHERE Compound_library_file_location = '$templib_file_path' ),
-						  	( SELECT Plateconf_file_path_ID FROM Plateconf_file_path WHERE Plateconf_file_location = '$plateconf_file_path' ),
-						  	( SELECT Platelist_file_path_ID FROM Platelist_file_path WHERE Platelist_file_location = '$platelist_file_path' ),
-						  	( SELECT Compound_library_ID FROM Compound_library WHERE Compound_library_name = '$templib' )";
-  
+  $query = "INSERT INTO 
+  			  Drug_screen_info (      
+			  Cell_line,    
+			  Drug_screen_name,    
+			  Date_of_run,    
+			  Operator,  
+			  Collaborator,
+			  Cells_per_well,
+			  Length_of_assay,  
+			  Is_isogenic,    
+			  Gene_name_if_isogenic,    
+			  Isogenic_mutant_description,    
+			  Method_of_isogenic_knockdown,
+			  Compound,
+			  Compound_concentration,   
+			  Dosing_regime,
+			  Compound_library_name,    
+			  Plate_list_file_name,    
+			  Plate_conf_file_name,   
+			  Drug_screen_link_to_z_report,
+			  Drug_screen_link_to_poc_report,
+			  Drug_screen_link_to_qc_plots,
+			  Drug_screen_link_to_drc_plots,
+			  Drug_screen_link_to_drc_file,
+			  Zprime,
+			  Notes,   
+			  Instrument_used_Instrument_used_ID,   
+			  Tissue_type_Tissue_type_ID,    
+			  Compound_library_file_path_Compound_library_file_path_ID,
+			  Plateconf_file_path_Plateconf_file_path_ID,
+			  Platelist_file_path_Platelist_file_path_ID,
+			  Compound_library_Compound_library_ID 
+			  ) 
+			  SELECT 
+				'$cell_line_name',
+				'$screen_dir_name',
+				'$date_of_run', 
+				'$operator',
+				'$collaborator',
+				'$cells_per_well',
+				'$length_of_assay',
+				'$is_isogenic_screen',
+				'$gene_name_if_isogenic',
+				'$isogenic_mutant_description',
+				'$method_of_isogenic_knockdown',
+				'$compound',
+				'$compound_concentration',
+				'$dosing_regime',
+				'$templib',
+				'$platelist',
+				'$plateconf',
+				'$rnai_screen_link_to_z_report',
+				'$rnai_screen_link_to_poc_report',
+				'$rnai_screen_link_to_qc_plots',
+				'$drug_screen_link_to_drc_plots',
+				'$drug_screen_link_to_drc_file',
+				'NA',
+				'$notes', 
+				( SELECT Instrument_used_ID FROM Instrument_used WHERE Instrument_name = '$instrument' ),
+				( SELECT Tissue_type_ID FROM Tissue_type WHERE Tissue_of_origin = '$tissue_type' ), 
+				( SELECT Compound_library_file_path_ID FROM Compound_library_file_path WHERE Compound_library_file_location = '$templib_file_path' ),
+				( SELECT Plateconf_file_path_ID FROM Plateconf_file_path WHERE Plateconf_file_location = '$plateconf_file_path' ),
+				( SELECT Platelist_file_path_ID FROM Platelist_file_path WHERE Platelist_file_location = '$platelist_file_path' ),
+				( SELECT Compound_library_ID FROM Compound_library WHERE Compound_library_name = '$templib' )";
+
   $query_handle = $dbh->prepare( $query );
    					    #or die "Cannot prepare: " . $dbh -> errstr();
   $query_handle -> execute(); 
@@ -2788,44 +2822,6 @@ sub show_all_screens {
   print "<table>";
  
   my $query = "SELECT
-              r.Drug_screen_name,
-			  t.Tissue_of_origin,
-		      r.Cell_line, 
-			  r.Date_of_run,
-			  r.Operator,
-			  r.Collaborator,
-			  r.Cells_per_well,
-			  r.Length_of_assay,
-			  i.Instrument_name,
-			  r.Compound_library_name,
-			  r.Plate_list_file_name,
-			  r.Plate_conf_file_name,
-			  r.Is_isogenic,
-			  r.Gene_name_if_isogenic,
-			  (SELECT n.Name_of_set_if_isogenic FROM Name_of_set_if_isogenic n WHERE n.Name_of_set_if_isogenic = 'NA'),
-		      r.Isogenic_mutant_description,
-			  r.Method_of_isogenic_knockdown,
-			  r.Compound,
-			  r.Compound_concentration,
-			  r.Dosing_regime,
-			  r.Drug_screen_link_to_z_report,
-			  r.Drug_screen_link_to_poc_report,
-			  r.Drug_screen_link_to_drc_plots,
-			  r.Drug_screen_link_to_drc_file
-			  FROM
-			  Drug_screen_info r,
-			  Instrument_used i,
-			  Tissue_type t,
-			  Name_of_set_if_isogenic n WHERE
-			  r.Instrument_used_Instrument_used_ID = i.Instrument_used_ID AND
-			  r.Tissue_type_Tissue_type_ID = t.Tissue_type_ID AND
-			  r.Is_isogenic = 'NO' AND
-			  r.Gene_name_if_isogenic = 'NA' AND
-			  r.Isogenic_mutant_description = 'NA' AND
-			  r.Method_of_isogenic_knockdown = 'NA' AND
-			  r.Name_of_set_if_isogenic_Name_of_set_if_isogenic_ID = '9' GROUP BY
-			  r.Drug_screen_info_ID UNION ALL 
-			  SELECT
 			  r.Drug_screen_name,
 			  t.Tissue_of_origin,
 			  r.Cell_line,
@@ -2840,7 +2836,6 @@ sub show_all_screens {
 			  r.Plate_conf_file_name,
 			  r.Is_isogenic,
 			  r.Gene_name_if_isogenic,
-			  n.Name_of_set_if_isogenic,
 			  r.Isogenic_mutant_description,
 			  r.Method_of_isogenic_knockdown,
 			  r.Compound,
@@ -2853,40 +2848,25 @@ sub show_all_screens {
 			  FROM
 			  Drug_screen_info r,
 			  Instrument_used i,
-			  Tissue_type t,
-			  Name_of_set_if_isogenic n WHERE
+			  Tissue_type t WHERE 
 			  r.Instrument_used_Instrument_used_ID = i.Instrument_used_ID AND
-			  r.Tissue_type_Tissue_type_ID = t.Tissue_type_ID AND
-			  r.Is_isogenic = 'YES' AND
-			  r.Gene_name_if_isogenic != 'NA' AND
-			  r.Isogenic_mutant_description != 'NA' AND
-			  r.Method_of_isogenic_knockdown != 'NA' AND
-			  n.Name_of_set_if_isogenic_ID != '9' AND
-			  r.Name_of_set_if_isogenic_Name_of_set_if_isogenic_ID = n.Name_of_set_if_isogenic_ID GROUP BY 
+			  r.Tissue_type_Tissue_type_ID = t.Tissue_type_ID GROUP BY 
 			  r.Drug_screen_info_ID order by Cell_line ASC";
     
   my $query_handle = $dbh -> prepare ( $query );
    					   #or die "Cannot prepare: " . $dbh -> errstr();
   $query_handle -> execute();
    # or die "SQL Error: ".$query_handle -> errstr();
-  
+   
   print "<td align=left valign=top>\n";
   
   print "<th>";
   print "Drug screen name";
   print "</th>";
   
-#  print "<th>";
-#  print "    ";
-#  print "</th>"; 
-  
   print "<th>";
   print "Tissue of origin";
   print "</th>";
-  
- # print "<th>";
-#  print "    ";
-#  print "</th>"; 
   
   print "<th>";
   print "    ";
@@ -3021,6 +3001,10 @@ sub show_all_screens {
   print "</th>"; 
   
   print "<th>";
+  print "    ";
+  print "</th>"; 
+  
+  print "<th>";
   print "Instrument name";
   print "</th>";
   
@@ -3079,19 +3063,7 @@ sub show_all_screens {
   print "<th>";
   print "Gene name if isogenic";
   print "</th>";
-  
-  print "<th>";
-  print "    ";
-  print "</th>";
-  
-  print "<th>";
-  print "    ";
-  print "</th>";  
-  
-  print "<th>";
-  print "Name of set if isogenic";
-  print "</th>";
-  
+
   print "<th>";
   print "    ";
   print "</th>";
@@ -3217,7 +3189,7 @@ sub show_all_screens {
     print "</td>";
    
     print "<td>";
-    print "<a href=\"$row[20]\" >Z-score analysis report</a>";
+    print "<a href=\"$row[19]\" >Z-score analysis report</a>";
     print "</td>"; 
     
     print "<td>";
@@ -3229,7 +3201,7 @@ sub show_all_screens {
     print "</td>"; 
    
     print "<td>";
-    print "<a href=\"$row[21]\" >POC analysis report</a>";
+    print "<a href=\"$row[20]\" >POC analysis report</a>";
     print "</td>"; 
     
     print "<td>";
@@ -3241,7 +3213,7 @@ sub show_all_screens {
     print "</td>"; 
     
     print "<td>";
-    print "<a href=" . $configures{'hostname'} . "cgi-bin/$script_name?show_qc=1\&screen_dir_name=$row[0]\&plate_conf=$row[9]\">QC</a>";
+    print "<a href=" . $configures{'hostname'} . "cgi-bin/$script_name?show_qc=1\&screen_dir_name=$row[0]\&plate_conf=$row[11]\">QC</a>";
     print "</td>"; 
     
     print "<td>";
@@ -3253,7 +3225,7 @@ sub show_all_screens {
     print "</td>"; 
     
     print "<td>";
-    print "<a href=\"$row[22]\" >View/download DRC plots</a>";
+    print "<a href=\"$row[21]\" >View/download DRC plots</a>";
     print "</td>"; 
     
     print "<td>";
@@ -3265,7 +3237,7 @@ sub show_all_screens {
     print "</td>"; 
     
     print "<td>";
-    print "<a href=\"$row[23]\" >View/download DRC results</a>";
+    print "<a href=\"$row[22]\" >View/download DRC results</a>";
     print "</td>"; 
     
     print "<td>";
@@ -3313,7 +3285,15 @@ sub show_all_screens {
     print "</td>"; 
     
     print "<td>";
+    print "    ";
+    print "</td>"; 
+    
+    print "<td>";
     print "$row[8]";
+    print "</td>";
+    
+    print "<td>";
+    print "    ";
     print "</td>";
     
     print "<td>";
@@ -3431,19 +3411,7 @@ sub show_all_screens {
     print "<td>";
     print "$row[18]";
     print "</td>";
-    
-     print "<td>";
-    print "    ";
-    print "</td>";
-    
-    print "<td>";
-    print "    ";
-    print "</td>"; 
-    
-    print "<td>";
-    print "$row[19]";
-    print "</td>";
-    
+
     print "</td>";
     
     print "</tr>";
