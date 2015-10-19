@@ -1536,6 +1536,9 @@ sub save_new_screen {
     my $descripFile = $file_path."/".$screen_dir_name."_Description.txt";
     open NOTES, "> $descripFile" 
       or die "Cannot write notes to $descripFile:$!\n";
+    if (($notes == "write notes for Description.txt") || ($notes == "")){
+      $notes = "$screen_dir_name\n$operator\t$date_of_run";
+    }
     print NOTES $notes;
     $screenDescription_filename = $screen_dir_name."_Description.txt";
     close NOTES;
