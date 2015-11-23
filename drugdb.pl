@@ -238,7 +238,7 @@ sub home {
   # read data from database and output
   # summary info about all screens
 
-  print "<h1>Hello:</h1>";
+  print "<h1>Hello!</h1>";
   #if ( defined ( $login_key ) ) {
   #  print "got cookie $login_key<br />";
   #}
@@ -253,8 +253,7 @@ sub home {
   }
   else
   {
-  	print "<p>This is the working version.</p>";
-  	print "<p>If you are not sure how to use it, please try the test version.</p>"; 	
+  	print "<p>This is the working version of DRUG database.</p>";
   }
   
   #print "<p>";
@@ -312,7 +311,7 @@ sub add_new_screen {
 										  }    
 										  function make_collab_Blank() {
 										    var b = document.getElementById( \"CollaboratoR\" );
-										    if (b.value ==\"Enter name of collaborator\")
+										    if (b.value ==\"Optional\")
 										    {
 										    	b.value = \"\";
 										    }
@@ -385,7 +384,7 @@ sub add_new_screen {
 										  }  
 										  function make_compound_Blank() {
 										    var h = document.getElementById( \"CompounD\" );
-										    if (h.value == \"e.g. drug A\")
+										    if (h.value == \"e.g. cisplatin\")
 										    {
 										    	h.value = \"\";
 										    }
@@ -441,7 +440,43 @@ sub add_new_screen {
 										    if ( document.addNewScreen.instrument.selectedIndex == 0 ) {
 										      alert ( \"Please select instrument used for this screen.\" );
 										      return false;
-										    } 
+										    }
+										    if ( form[\"length_of_assay\"].value == \"Enter length of assay\" ) {
+										      alert ( \"Please enter length of assay.\" );
+										      return false;
+										    }
+										    if ( document.addNewScreen.is_isogenic.checked && form[\"gene_name_if_isogenic\"].value == \"Enter gene name\") {
+										      alert ( \"Please enter gene name.\" );
+										      return false;
+										    }
+										    if ( document.addNewScreen.is_isogenic.checked && form[\"gene_name_if_isogenic\"].value == \"\" ) {
+										      alert ( \"Please enter gene name.\" );
+										      return false;
+										    }
+										    if ( document.addNewScreen.is_isogenic.checked && form[\"isogenic_mutant_description\"].value == \"e.g. parental\") {
+										      alert ( \"Please enter isogenic description.\" );
+										      return false;
+										    }
+										    if ( document.addNewScreen.is_isogenic.checked && form[\"isogenic_mutant_description\"].value == \"\" ) {
+										      alert ( \"Please enter isogenic description.\" );
+										      return false;
+										    }
+										    if ( document.addNewScreen.is_isogenic.checked && form[\"method_of_isogenic_knockdown\"].value == \"e.g. CRISPR or shRNA\") {
+										      alert ( \"Please enter method of isogenic knockdown.\" );
+										      return false;
+										    }
+										    if ( document.addNewScreen.is_isogenic.checked && form[\"method_of_isogenic_knockdown\"].value == \"\" ) {
+										      alert ( \"Please enter method of isogenic knockdown.\" );
+										      return false;
+										    }
+										    if ( document.addNewScreen.is_drug_screen.checked && form[\"compound\"].value == \"e.g. cisplatin\") {
+										      alert ( \"Please enter compound name.\" );
+										      return false;
+										    }
+										    if ( document.addNewScreen.is_drug_screen.checked && form[\"compound\"].value == \"\" ) {
+										      alert ( \"Please enter compound name.\" );
+										      return false;
+										    }
 										    var answer = confirm(\"Please make sure the data are correct. Don't forget to complete the isogenic/drugscreen part of the form if it's relevant. The data once saved cannot be edited easily.\")
 										  	return answer;
 										  }	
@@ -765,9 +800,9 @@ sub add_new_screen {
                           
   ## get the collaborator ##
   
-  print "Collaborator:<br />";
+  print "Collaborator's name:<br />";
   print $q -> textfield ( -name => "collaborator",
-                          -value => 'Enter name of collaborator',
+                          -value => 'Optional',
                           -size => "30",
                           -maxlength => "45",
                           -onClick => "make_collab_Blank()",
@@ -889,7 +924,7 @@ sub add_new_screen {
   
   print "Method of isogenic mutation:<br />";
   print $q -> textfield ( -name => "method_of_isogenic_knockdown",
-                          -value => 'e.g. ZFN or shRNA',
+                          -value => 'e.g. CRISPR or shRNA',
                           -size => "30",
                           -maxlength => "45",
                           -onClick => "make_isogenicKnockdown_Blank()",
@@ -940,7 +975,7 @@ sub add_new_screen {
   
   print "Compound:<br />";
   print $q -> textfield ( -name => "compound",
-                          -value => 'e.g. drug A',
+                          -value => 'e.g. cisplatin',
                           -size => "30",
                           -maxlength => "45",
                           -id => "CompounD",
@@ -1313,116 +1348,70 @@ sub save_new_screen {
   my $screen_dir_name = $q -> param( "screen_dir_name" );
   my $screenDescription_filename;
   
-  $compound =~ s/^\s+//g;
-  $compound =~ s/\//-/g;
+  $gene_name_if_isogenic =~ s/\s+//g; 
+  $gene_name_if_isogenic =~ s/\//-/g;
+   
+  $isogenic_mutant_description =~ s/\s+//g;
+  $isogenic_mutant_description =~ s/\//-/g;
   
-  $compound_concentration =~ s/^\s+//g;
-  $compound_concentration =~ s/\//-/g;
+  $method_of_isogenic_knockdown =~ s/\s+//g;
+  $method_of_isogenic_knockdown =~ s/\//-/g;
   
-  if ( $collaborator == "Enter name of collaborator" || $collaborator == "" ) {
+  if ( $collaborator == "Optional" || $collaborator == "" ) {
     $collaborator = "NA";
   }
-  if ( $length_of_assay == "Enter length of assay" || $length_of_assay == "" ) {
-    $length_of_assay = "NA";
+  if ( $dosing_regime == "e.g. 24 hrs after transfection" || $dosing_regime == "" ) {
+    $dosing_regime = "NA";
   }
   
-   if ( $compound_concentration == "e.g. 100 ng") {
-    $compound_concentration = "";
-  }
+  $compound =~ s/\s+//g;
+  $compound =~ s/\//-/g;
+  $compound = uc($compound);
   
-   if ( $isogenic_mutant_description == "e.g. parental") {
-    $isogenic_mutant_description = "";
-  }
+  $compound_concentration =~ s/\s+//g;
+  $compound_concentration =~ s/\//-/g;
+  
+  $isogenic_mutant_description =~ s/\s+//g;
+  
   my $guide_file;
   
-    if ( not defined ($screen_dir_name) & (index($templib, "11_12")) ) {
+    if ( not defined ($screen_dir_name)) {
    
-      $screen_dir_name = $tissue_type ."_". $cell_line_name ."_". $date_of_run . "_p11_12_sA";
+      $screen_dir_name = $tissue_type ."_". $cell_line_name ."_". $date_of_run . "_" . $templib . "_sA";
     
-    if ( ($is_isogenic eq 'ON') & (index($templib, "11_12")) )
+    if ( ($is_isogenic eq 'ON') & ($is_drug_screen ne 'ON') )
     {
-    	$screen_dir_name = "IS" . "_" . $tissue_type . "_" . $cell_line_name . "_" . $gene_name_if_isogenic . "_" . $isogenic_mutant_description . "_" . $date_of_run . "_p11_12_sA";
+    	$screen_dir_name = "IS" . "_" . $tissue_type . "_" . $cell_line_name . "_" . $gene_name_if_isogenic . "_" . $isogenic_mutant_description . "_" . $date_of_run . "_" . $templib . "_sA";
     }
-    if (($is_isogenic ne 'ON') & ($is_drug_screen eq 'ON') & (index($templib, "11_12")) & (defined($compound_concentration)))
+    if (($is_isogenic ne 'ON') & ($is_drug_screen eq 'ON') & (defined($compound_concentration)))
     {
-    	$screen_dir_name = $tissue_type . "_" . $cell_line_name . "_" . $compound . "_" . $compound_concentration . "_" . $date_of_run . "_p11_12_dA";
+    	$screen_dir_name = $tissue_type . "_" . $cell_line_name . "_" . $compound . "_" . $compound_concentration . "_" . $date_of_run . "_" . $templib . "_dA";
     }
-    if (($is_isogenic eq 'ON') & ($is_drug_screen eq 'ON') & (index($templib, "11_12")) & (defined($compound_concentration)))
+    if (($is_isogenic eq 'ON') & ($is_drug_screen eq 'ON') & (defined($compound_concentration)))
     {
-    	$screen_dir_name = "IS" . "_" . $tissue_type . "_" . $cell_line_name . "_" . $gene_name_if_isogenic . "_" . $isogenic_mutant_description . "_" . $compound . "_" . $compound_concentration . "_" . $date_of_run . "_p11_12_dA";
+    	$screen_dir_name = "IS" . "_" . $tissue_type . "_" . $cell_line_name . "_" . $gene_name_if_isogenic . "_" . $isogenic_mutant_description . "_" . $compound . "_" . $compound_concentration . "_" . $date_of_run . "_" . $templib . "_dA";
     }
-    if (($is_isogenic ne 'ON') & ($is_drug_screen eq 'ON') & (index($templib, "11_12")) & (not defined($compound_concentration)))
+    if (($is_isogenic ne 'ON') & ($is_drug_screen eq 'ON') & (not defined($compound_concentration)))
     {
-    	$screen_dir_name = $tissue_type . "_" . $cell_line_name . "_" . $compound . "_" . $date_of_run . "_p11_12_dA";
+    	$screen_dir_name = $tissue_type . "_" . $cell_line_name . "_" . $compound . "_" . $date_of_run . "_" . $templib . "_dA";
     }
-     if (($is_isogenic eq 'ON') & ($is_drug_screen eq 'ON') & (index($templib, "11_12")) & (not defined($compound_concentration)))
+     if (($is_isogenic eq 'ON') & ($is_drug_screen eq 'ON') & (not defined($compound_concentration)))
     {
-    	$screen_dir_name = "IS" . "_" . $tissue_type . "_" . $cell_line_name . "_" . $gene_name_if_isogenic . "_" . $isogenic_mutant_description . "_" . $compound . "_" . $date_of_run . "_p11_12_dA";
+    	$screen_dir_name = "IS" . "_" . $tissue_type . "_" . $cell_line_name . "_" . $gene_name_if_isogenic . "_" . $isogenic_mutant_description . "_" . $compound . "_" . $date_of_run . "_" . $templib . "_dA";
     }
   }
-  if ( not defined ($screen_dir_name) & (index($templib, "p13")) ) {
-  
-    $screen_dir_name = $tissue_type ."_". $cell_line_name ."_". $date_of_run . "_p13_sA";
-    
-    if ( ($is_isogenic eq 'ON') & (index($templib, "p13")) )
-    {
-    	$screen_dir_name = "IS" . "_" . $tissue_type . "_" . $cell_line_name . "_" . $gene_name_if_isogenic . "_" . $isogenic_mutant_description . "_" . $date_of_run . "_p13_sA";
-    }
-    if (($is_isogenic ne 'ON') & ($is_drug_screen eq 'ON') & (index($templib, "p13")) & (defined($compound_concentration)))
-    {
-    	$screen_dir_name = $tissue_type . "_" . $cell_line_name . "_" . $compound . "_" . $compound_concentration . "_" . $date_of_run . "_p13_dA";
-    }
-    if (($is_isogenic eq 'ON') & ($is_drug_screen eq 'ON') & (index($templib, "p13")) & (defined($compound_concentration)))
-    {
-    	$screen_dir_name = "IS" . "_" . $tissue_type . "_" . $cell_line_name . "_" . $gene_name_if_isogenic . "_" . $isogenic_mutant_description . "_" . $compound . "_" . $compound_concentration . "_" . $date_of_run . "_p13_dA";
-    }
-    if (($is_isogenic ne 'ON') & ($is_drug_screen eq 'ON') & (index($templib, "p13")) & (not defined($compound_concentration)))
-    {
-    	$screen_dir_name = $tissue_type . "_" . $cell_line_name . "_" . $compound . "_" . $date_of_run . "_p13_dA";
-    }
-     if (($is_isogenic eq 'ON') & ($is_drug_screen eq 'ON') & (index($templib, "p13")) & (not defined($compound_concentration)))
-    {
-    	$screen_dir_name = "IS" . "_" . $tissue_type . "_" . $cell_line_name . "_" . $gene_name_if_isogenic . "_" . $isogenic_mutant_description . "_" . $compound . "_" . $date_of_run . "_p13_dA";
-    }
-  }
-   if ( not defined ($screen_dir_name) & (index($templib, "FAnalogues")) ) {
-  
-    $screen_dir_name = $tissue_type ."_". $cell_line_name ."_". $date_of_run . "_FAnalogues_sA";
-    
-    if ( ($is_isogenic eq 'ON') & (index($templib, "FAnalogues")) )
-    {
-    	$screen_dir_name = "IS" . "_" . $tissue_type . "_" . $cell_line_name . "_" . $gene_name_if_isogenic . "_" . $date_of_run . "_FAnalogues_sA";
-    }
-    if (($is_isogenic ne 'ON') & ($is_drug_screen eq 'ON') & (index($templib, "FAnalogues")) & (defined($compound_concentration)))
-    {
-    	$screen_dir_name = $tissue_type . "_" . $cell_line_name . "_" . $compound . "_" . $compound_concentration . "_" . $date_of_run . "_FAnalogues_dA";
-    }
-    if (($is_isogenic eq 'ON') & ($is_drug_screen eq 'ON') & (index($templib, "FAnalogues")) & (defined($compound_concentration)))
-    {
-    	$screen_dir_name = "IS" . "_" . $tissue_type . "_" . $cell_line_name . "_" . $gene_name_if_isogenic . "_" . $compound . "_" . $compound_concentration . "_" . $date_of_run . "_FAnalogues_dA";
-    }
-    if (($is_isogenic ne 'ON') & ($is_drug_screen eq 'ON') & (index($templib, "FAnalogues")) & (not defined($compound_concentration)))
-    {
-    	$screen_dir_name = $tissue_type . "_" . $cell_line_name . "_" . $compound . "_" . $date_of_run . "_FAnalogues_dA";
-    }
-     if (($is_isogenic eq 'ON') & ($is_drug_screen eq 'ON') & (index($templib, "FAnalogues")) & (not defined($compound_concentration)))
-    {
-    	$screen_dir_name = "IS" . "_" . $tissue_type . "_" . $cell_line_name . "_" . $gene_name_if_isogenic . "_" . $compound . "_" . $date_of_run . "_FAnalogues_dA";
-    }
-  }
+
   my $screenDir_path = $configures{'screenDir_path'};
   my $file_path = "$screenDir_path/$screen_dir_name";
   
   
-################commented out by Aditi 150912 ########################  
-#  if (( -e $file_path ) && ( $sicon1 ne 'ON' ) && ( $sicon2 ne 'ON' ) && ( $allstar ne 'ON' )) {
- #    	#die "Cannot make new RNAi screen directory $screen_dir_name in $screenDir_path: $!";
- # 		my $message = "A screen with the same name already exists. Cannot make new RNAi screen directory $screen_dir_name in $screenDir_path";
- # 		print "<div id=\"Message\"><p><b>$message</b></p></div>";
- # 		return;
- #  }
- ######################################################################
- 
+
+  if ( -e $file_path ) {
+ 	my $message = "A screen with the same name already exists. Cannot make new RNAi screen directory $screen_dir_name in $screenDir_path";
+ 	print "<div id=\"Message\"><p><b>$message</b></p></div>";
+ 	die "Cannot make new RNAi screen directory $screen_dir_name in $screenDir_path: $!";
+ 	return;
+  }
   
   if ( ! -e $file_path ) {
     mkdir( "$file_path" );
@@ -1565,6 +1554,8 @@ sub save_new_screen {
       "pocscore_file\t", 
       "summary_file1\t", 
       "summary_file2\t", 
+      "summary_file_with_rep_zscores\t", 
+      "summary_file_with_rep_pocscores\t", 
       "zprime_file\t", 
       "reportdir_file1\t", 
       "reportdir_file2\t", 
@@ -1591,6 +1582,8 @@ sub save_new_screen {
       "$screen_dir_name"."_pocscores.txt\t",
       "$screen_dir_name"."_zscores_summary.txt\t",
       "$screen_dir_name"."_pocscores_summary.txt\t", 
+      "$screen_dir_name"."_zscores_summary_with_rep_zscores.txt\t",
+      "$screen_dir_name"."_pocscores_summary_with_rep_pocscores.txt\t", 
       "$screen_dir_name"."_zprime.txt\t", 
       "$screen_dir_name"."_zscores_reportdir\t", 
       "$screen_dir_name"."_pocscores_reportdir\t", 
@@ -1603,13 +1596,18 @@ sub save_new_screen {
       "$screen_dir_name"."_separate_zprime.txt\t",
       "$screen_dir_name"."_pocscores_drugresponse.txt\t",
       "$screen_dir_name"."_pocscore_figures.pdf\n";  
-  
-    #print "<p><div id=\"Note\">Created guide file...</div></p>";
-    print "<p><div id=\"Note\">Analysing...</div></p>"; 
       
+    print "<p><div id=\"Note\">Analysing...</div></p>"; 
+    
     close (GUIDEFILE); 
     }
-    
+   # else {
+   #   my $message = "Cannot create new screen directory as it already exists";
+    #  print "<p>";
+   #   print "<div id=\"Message\"><p><b>$message</b></p></div>";
+   #   print "</p>";
+   #   die "$!";
+   # }
   ## Reanalysis ##
     
    # if (( -e $file_path ) && ( $sicon1 eq 'ON' )) {
@@ -1712,8 +1710,16 @@ sub save_new_screen {
   my $drc_file_original_path = $file_path."/".$screen_dir_name."_pocscores_drugresponse.txt"; 		
   my $drc_file_new_path = $configures{'WebDocumentRoot'} . $configures{'drug_screen_drc_figs_new_path'}; 		
   `cp -r $drc_file_original_path $drc_file_new_path`;
+  
+ #### my $rep_zscores_file_original_path = $file_path."/".$screen_dir_name."_zscores_summary_with_rep_zscores.txt"; 		
+ ####### my $rep_zscores_file_new_path = $configures{'WebDocumentRoot'} . $configures{'reps_summary'}; 		
+ ##### `cp -r $rep_zscores_file_original_path $rep_zscores_file_new_path`;
 
-  ## copy the file with correlation coefficients for the reps to the /usr/local/www/html/RNAi_screen_analysis_separate_zprime_folder ##
+###### my $rep_pocscores_file_original_path = $file_path."/".$screen_dir_name."_pocscores_summary_with_rep_pocscores.txt"; 		
+######  my $rep_pocscores_file_new_path = $configures{'WebDocumentRoot'} . $configures{'reps_summary'}; 		
+###### `cp -r $rep_pocscores_file_original_path $rep_pocscores_file_new_path`;
+  
+ ## copy the file with correlation coefficients for the reps to the /usr/local/www/html/RNAi_screen_analysis_separate_zprime_folder ##
   
  ########not displaying QC boxplots 150913 ##########
  # my $rnai_screen_sep_zprime_original_path = $file_path."/" . $screen_dir_name . "_separate_zprime.txt"; 		
@@ -1724,9 +1730,14 @@ sub save_new_screen {
   
   #######my $rnai_screen_link_to_qc_plots = $configures{'hostname'} . $configures{'rnai_screen_qc_new_path'} . $screen_dir_name . "_controls_qc.png";
   ####entering 'NA' to the database instead of QC plot link
+  
   my $rnai_screen_link_to_qc_plots = "NA";
+  
   my $drug_screen_link_to_drc_plots = $configures{'hostname'} . $configures{'drug_screen_drc_figs_new_path'} . $screen_dir_name . "_pocscore_figures.pdf";
   my $drug_screen_link_to_drc_file = $configures{'hostname'} . $configures{'drug_screen_drc_figs_new_path'} . $screen_dir_name . "_pocscores_drugresponse.txt";
+  
+  my $drug_screen_link_to_rep_zscores = $configures{'hostname'} . $configures{'reps_summary'} . $screen_dir_name . "_zscores_summary_with_rep_zscores.txt";
+  my $drug_screen_link_to_rep_pocscores = $configures{'hostname'} . $configures{'reps_summary'} . $screen_dir_name . "_pocscores_summary_with_rep_pocscores.txt";
   
   #return $rnai_screen_link_to_qc_plots;
   
@@ -2847,8 +2858,9 @@ sub show_all_screens {
 			  r.Drug_screen_link_to_z_report,
 			  r.Drug_screen_link_to_poc_report,
 			  r.Drug_screen_link_to_drc_plots,
-			  r.Drug_screen_link_to_drc_file 
-			  FROM
+			  r.Drug_screen_link_to_drc_file,
+			  r.Drug_screen_link_to_rep_zscores, 
+			  r.Drug_screen_link_to_rep_pocscores FROM
 			  Drug_screen_info r,
 			  Instrument_used i,
 			  Tissue_type t WHERE 
@@ -2908,11 +2920,7 @@ sub show_all_screens {
   print "</th>"; 
   
   print "<th>";
-  print "Link to cellHTS2 Zscore report";
-  print "</th>";
-  
-  print "<th>";
-  print "    ";
+  print "Link to cellHTS2 analysis Z-score report";
   print "</th>";
   
   print "<th>";
@@ -2920,7 +2928,11 @@ sub show_all_screens {
   print "</th>"; 
   
   print "<th>";
-  print "Link to cellHTS2 Pocscore report";
+  print "    ";
+  print "</th>"; 
+  
+  print "<th>";
+  print "Link to cellHTS2 analysis POC-score report";
   print "</th>";
   
   print "<th>";
@@ -2932,7 +2944,7 @@ sub show_all_screens {
   print "</th>";  
   
   print "<th>";
-  print "Link to QC plots";
+  print "View/Download QC plots";
   print "</th>";
   
   print "<th>";
@@ -2944,7 +2956,7 @@ sub show_all_screens {
   print "</th>";  
   
   print "<th>";
-  print "Link to DRC plots";
+  print "View/Download DRC plots";
   print "</th>";
   
   print "<th>";
@@ -2956,7 +2968,31 @@ sub show_all_screens {
   print "</th>";  
   
   print "<th>";
-  print "Link to DRC file";
+  print "View/Download DRC file";
+  print "</th>";
+  
+  print "<th>";
+  print "    ";
+  print "</th>";
+  
+  print "<th>";
+  print "    ";
+  print "</th>";  
+  
+  print "<th>";
+  print "View/Download rep Z-scores";
+  print "</th>";
+  
+  print "<th>";
+  print "    ";
+  print "</th>";
+  
+  print "<th>";
+  print "    ";
+  print "</th>";  
+  
+  print "<th>";
+  print "View/Download rep POC-scores";
   print "</th>";
   
   print "<th>";
@@ -3197,14 +3233,14 @@ sub show_all_screens {
     
     print "<td>";
     print "    ";
-    print "</td>"; 
+    print "</td>";
     
     print "<td>";
     print "    ";
     print "</td>"; 
-   
+    
     print "<td>";
-    print "<a href=\"$row[20]\" >POC analysis report</a>";
+    print "<a href=\"$row[20]\" >POC-score analysis report</a>";
     print "</td>"; 
     
     print "<td>";
@@ -3228,7 +3264,7 @@ sub show_all_screens {
     print "</td>"; 
     
     print "<td>";
-    print "<a href=\"$row[21]\" >View/download DRC plots</a>";
+    print "<a href=\"$row[21]\" >DRC plots</a>";
     print "</td>"; 
     
     print "<td>";
@@ -3240,8 +3276,32 @@ sub show_all_screens {
     print "</td>"; 
     
     print "<td>";
-    print "<a href=\"$row[22]\" >View/download DRC results</a>";
+    print "<a href=\"$row[22]\" >AUC/SF scores</a>";
     print "</td>"; 
+    
+    print "<td>";
+    print "    ";
+    print "</td>";
+    
+    print "<td>";
+    print "    ";
+    print "</td>"; 
+    
+    print "<td>";
+    print "<a href=\"$row[23]\" >rep Z-scores</a>";
+    print "</td>";
+    
+    print "<td>";
+    print "    ";
+    print "</td>";
+    
+    print "<td>";
+    print "    ";
+    print "</td>"; 
+    
+    print "<td>";
+    print "<a href=\"$row[24]\" >rep POC-scores</a>";
+    print "</td>";
     
     print "<td>";
     print "    ";
@@ -3430,162 +3490,413 @@ sub show_all_screens {
 
 } #end of show_all_screens subroutine
 
-
-# =================================
-# Subroutine for configuring export
-# =================================
+# ==================================================
+# Subroutine for configuring export (second version)
+# ==================================================
 
 sub configure_export {
   print $q -> header ( "text/html" );
   print "$page_header";
   print "<h1>Configure export:</h1>";
+  
+    # the list of paths above includes some screens we don't want to export
+  # but cannot delete until we get sudo rights. get the subset we do want
+  # to use by querying the mysql db.
+  
+  my @all_summary_files;
+  
+  my $query = "SELECT
+			  r.Summary_file_path FROM
+			  Drug_screen_info r";
 
-  ## retrieve library_gene names from the database and save them in a hash ##
-  
-  my $query = ( "SELECT 
-				CONCAT(l.Sub_lib, '_', l.Gene_symbol_templib) FROM 
-				Template_library_file l WHERE 
-				l.Gene_symbol_templib IS NOT NULL AND        
-				l.Gene_symbol_templib != 'unknown' AND            
-				l.Gene_symbol_templib != 'sicon1' AND            
-				l.Gene_symbol_templib != 'plk1' AND           
-				l.Gene_symbol_templib != 'Plk1' AND
-				l.Gene_symbol_templib != 'siPLK1' AND            
-				l.Gene_symbol_templib != 'MOCK' AND            
-				l.Gene_symbol_templib != 'sicon2' AND            
-				l.Gene_symbol_templib != 'siCON2' AND           
-				l.Gene_symbol_templib != 'allSTAR' AND            
-				l.Gene_symbol_templib != 'siCON1' AND            
-				l.Gene_symbol_templib != 'allstar' AND            
-				l.Gene_symbol_templib != 'empty' AND            
-				l.Gene_symbol_templib != 'NULL' AND
-				l.Sub_lib IS NOT NULL GROUP BY  
-				CONCAT( Sub_lib, '_', Gene_symbol_templib )" );
-  
   my $query_handle = $dbh -> prepare ( $query );
-   					 #  or die "Cannot prepare: " . $dbh -> errstr();
+   					   #or die "Cannot prepare: " . $dbh -> errstr();
   $query_handle -> execute();
-   # or die "SQL Error: ".$query_handle -> errstr();
- # print "<table>";
   
-  my %lib_gene_h;
-  my @lib_genes;
-  my $lib_gene;
+  while (my $sum_file_path = $query_handle -> fetchrow_array){
   
-  while ( @lib_genes = $query_handle -> fetchrow_array ) {
-  
-    $lib_gene_h { $lib_genes[0] } = 2;
-    
+    push(@all_summary_files, $sum_file_path);
   }
-  #$query_handle -> finish();
+  
+  # write the list of cleaned up paths to a file that can be read by R to
+  # find the summary files to process
+  my $summary_file_list_file = $configures{'WebDocumentRoot'} . $configures{'configure_export_new_file_path'} . "z_summary_file_list.txt";
+  open FILESTOPROC, "> $summary_file_list_file" or die "Can't write file $summary_file_list_file: $!\n";
+  foreach my $path (@all_summary_files){
+    my $modified_path = $path;
+    $modified_path =~ s/\.txt$/_with_rep_zscores.txt/;
+   # if (! -e $modified_path){
+    print FILESTOPROC "$path\n";
+   # }
+  }
+  close FILESTOPROC;
+  
+  my $dir = $configures{'WebDocumentRoot'}.$configures{'configure_export_new_file_path'};
+  
+  # call an R script to process each summary file and 
+  # write out a file with the replicate and summarised Z-scores
+  # save this to :
+  # /path/to/screen1/summary.txt ... write summary_with_score_reps.txt in same folder
+  # /path/to/screen2/summary.txt ... write summary_with_score_reps.txt in same folder
+  # if a processed summary file already exists in the folder, no need to remake
 
-  ## retrieve cell lines from the database and save them in a hash ##
+  `cd $dir && R --vanilla < $configures{'get_replicate_zscores_script'}`;
   
-  $query = ( "SELECT 
-   				r.Cell_line FROM 
-   				Rnai_screen_info r, 
-   				Summary_of_result s, 
-  				Template_library t WHERE
-   				r.Rnai_screen_info_ID = s.Rnai_screen_info_Rnai_screen_info_ID AND 
-   				r.Template_library_Template_library_ID = t.Template_library_ID GROUP BY 
-   				r. Rnai_screen_info_ID" );
-   
-  $query_handle = $dbh -> prepare ( $query );
-   					   #or die "Cannot prepare: " . $dbh -> errstr();
-  $query_handle -> execute();
-    #or die "SQL Error: " . $query_handle -> errstr();
+  # when all summary files are processed, read each one and create a hash for all Z-scores
+  # $some_hash{$screen.$gene.$rep/'median'} = zscore
   
-  my %cell_line_h;
-  my @cell_lines;
-  my $cell_line;
-  while ( @cell_lines = $query_handle -> fetchrow_array ) {
- 
-    $cell_line_h{ $cell_lines[0] } = 3; 
+  my %colname_sirna_info_seen;
+  my %median_zscores;
+  my %replicate_zscores;
+  my @rowname_filenames = ();
+  my @colname_sirna_info = ();  
+  foreach my $path (@all_summary_files){
+    my $modified_path = $path;
+    $modified_path =~ s/\.txt$/_with_rep_zscores.txt/;
+    open SUMMARY, "< $modified_path" or die "Can't read summary file $modified_path: $!\n";
+    my $header = <SUMMARY>;
+    chomp $header;
+    my @col_names = split(/\t/, $header);
+    my ($plate_col, $pos_col, $score_col, $geneid_col, $conc_col, $rep1_col, $rep2_col, $rep3_col);
+    for(my $i = 0; $i <= $#col_names; $i ++){
     
-  } 
-  #$query_handle -> finish();
-  
-  ## retrieve zscores for each cell line from the database and save them in a hash ##
-  
-  $query = ( "SELECT
-    			CONCAT(l.Sub_lib, '_', l.Gene_symbol_templib),
-    			r.Cell_line, 
-    			s.Zscore_summary FROM 
-				Rnai_screen_info r, 
-				Summary_of_result s, 
-				Template_library_file l WHERE 
-				r.Rnai_screen_info_ID = s.Rnai_screen_info_Rnai_screen_info_ID AND
-				r.Template_library_Template_library_ID = s.Template_library_Template_library_ID AND 
-				CONCAT(l.Sub_lib, '_', l.Gene_symbol_templib) = CONCAT(l.Sub_lib, '_', s.Gene_symbol_summary) AND
-				s.Zscore_summary != 'NA' AND
-				l.Gene_symbol_templib IS NOT NULL AND        
-				l.Gene_symbol_templib != 'unknown' AND           
-				l.Gene_symbol_templib != 'sicon1' AND           
-				l.Gene_symbol_templib != 'plk1' AND           
-				l.Gene_symbol_templib != 'Plk1' AND
-				l.Gene_symbol_templib != 'siPLK1' AND             
-				l.Gene_symbol_templib != 'MOCK' AND          
-				l.Gene_symbol_templib != 'sicon2' AND           
-				l.Gene_symbol_templib != 'siCON2' AND           
-				l.Gene_symbol_templib != 'allSTAR' AND            
-				l.Gene_symbol_templib != 'siCON1' AND            
-				l.Gene_symbol_templib != 'allstar' AND           
-				l.Gene_symbol_templib != 'empty' AND            
-				l.Gene_symbol_templib != 'NULL' AND
-				l.Sub_lib IS NOT NULL GROUP BY 
-				s.Summary_of_result_ID" );
-  
-  $query_handle = $dbh -> prepare ( $query );
-   					   #or die "Cannot prepare: " . $dbh -> errstr();
-  $query_handle -> execute();
-   # or die "SQL Error: " . $query_handle -> errstr();
-  my %zscore_h;
-  my @zscores;
- 
-  @lib_genes = keys %lib_gene_h;
-  @cell_lines = keys %cell_line_h; 
-  
-  open OUT, "> ". $configures{'screenDir_path'} . "Rnai_screen_analysis_configure_export.txt"
-    or die "Cannot open" .  $configures{'screenDir_path'} . "Rnai_screen_analysis_configure_export.txt:$!\n";
-  my @header = sort @lib_genes;
-  print OUT "CELL LINE/TARGET\t"."@header\t";
-  print OUT "\n";
-  
-  while ( @zscores = $query_handle -> fetchrow_array ) {
-    $zscore_h { $zscores[0].$zscores[1] } = $zscores[2];
-  }
- # $query_handle->finish();
-  
-  foreach $cell_line ( @cell_lines ) {
-    print OUT "$cell_line\t";
-    foreach $lib_gene ( sort @lib_genes ) {
-      if ( exists ( $zscore_h { $lib_gene.$cell_line } ) ) {
-        print OUT "$zscore_h{$lib_gene.$cell_line}\t"; 
+      if($col_names[$i] eq 'plate'){
+        $plate_col= $i;
       }
-      else {
-        print OUT "NA\t";
+      elsif($col_names[$i] eq 'position'){
+        $pos_col = $i;
+      }
+      elsif($col_names[$i] eq 'score'){
+        $score_col = $i;
+      }
+      elsif($col_names[$i] eq 'GeneID'){
+        $geneid_col = $i;
+      }
+      elsif($col_names[$i] eq 'Concentration_pM' | $col_names[$i] eq 'Concentration.pM.'){
+        $conc_col = $i;
+      }
+      elsif($col_names[$i] eq 'zscore_rep1'){
+        $rep1_col = $i;
+      }
+      elsif($col_names[$i] eq 'zscore_rep2'){
+        $rep2_col = $i;
+      }
+      elsif($col_names[$i] eq 'zscore_rep3'){
+        $rep3_col = $i;
       }
     }
-    print OUT "\n";
+    defined($plate_col) or die "plate_col not defined";
+    defined($pos_col) or die "pos_col not defined";
+    defined($score_col) or die "score_col not defined";
+    defined($geneid_col) or die "geneid_col not defined";
+    defined($conc_col) or die "conc_col not defined";
+    defined($rep1_col) or die "rep1_col not defined";
+    defined($rep2_col) or die "rep2_col not defined";
+    defined($rep3_col) or die "rep3_col not defined";
+    
+    # make a hash key from:
+    # summary_file_name + plate + pos + geneID/- rep
+    my $filename = $modified_path;
+    $filename =~ s/^.*\///;
+    $filename =~ s/_with_rep_zscores.txt$//;
+	push(@rowname_filenames, $filename); 
+	while(<SUMMARY>){
+	  my $line = $_;
+	  chomp $line;
+	  my @fields = split(/\t/, $line);
+	  my ($plate, $pos, $score, $geneid, $conc, $zrep1, $zrep2, $zrep3) = @fields[$plate_col,$pos_col,$score_col,$geneid_col,$conc_col,$rep1_col,$rep2_col,$rep3_col];
+	  if ($score ne "NA"){
+	    my $score_key = $filename . "_" . $geneid . "_" . $conc;
+	    unless (exists $colname_sirna_info_seen{$geneid . "_" . $conc}){
+          push(@colname_sirna_info, $geneid . "_" . $conc);
+        }
+        $colname_sirna_info_seen{$geneid . "_" . $conc} = 1;
+	    $median_zscores{$score_key} = $score;
+	    $replicate_zscores{$score_key . "_rep1"} = $zrep1;
+	    $replicate_zscores{$score_key . "_rep2"} = $zrep2;
+	    $replicate_zscores{$score_key . "_rep3"} = $zrep3;
+	  }
+	}
+    close SUMMARY;
   }
+  
+  # get array of each screen and array of each zscore*rep/median and write out
+  # a table as was done for the configure_export sub previously
+  
+  my $median_zscores_file_path = $configures{'WebDocumentRoot'} . $configures{'configure_export_new_file_path'} . "median_zscores_export_file.txt";
+  my $replicate_zscores_file_path = $configures{'WebDocumentRoot'} . $configures{'configure_export_new_file_path'} . "replicate_zscores_export_file.txt";
+  
+  open MEDOUT, "> $median_zscores_file_path" or die "Can't write to median zscores export file: $!\n";
+  open REPSOUT, "> $replicate_zscores_file_path" or die "Can't write to replicate zscores export file: $!\n";
+  
+  # write out the column headings (siRNA info etc)
+  print MEDOUT "screen";
+  print REPSOUT "screen";
+  foreach my $colname (@colname_sirna_info){
+     print MEDOUT "\t$colname"; 
+     print REPSOUT "\t$colname"; 
+  }
+  print MEDOUT "\n"; 
+  print REPSOUT "\n"; 
+  
+  # now write the data for each screen as a separate row
+  foreach my $rowname (@rowname_filenames){
+    print MEDOUT "$rowname";
+    foreach my $colname (@colname_sirna_info){
+      if(exists $median_zscores{$rowname."_".$colname}){
+        print MEDOUT "\t$median_zscores{$rowname.'_'.$colname}";
+      }
+      else{
+        print MEDOUT "\tNA";
+      }
+    }
+    print MEDOUT "\n";
 
-  close OUT;
+    print REPSOUT "$rowname";
+    print REPSOUT "_rep1";
+    foreach my $colname (@colname_sirna_info){
+      if(exists $replicate_zscores{$rowname."_".$colname."_rep1"}){
+        print REPSOUT "\t$replicate_zscores{$rowname.'_'.$colname.'_rep1'}";
+      }
+      else{
+        print REPSOUT "\tNA";
+      }
+    }
+    print REPSOUT "\n";
+
+    print REPSOUT "$rowname";
+    print REPSOUT "_rep2";
+    foreach my $colname (@colname_sirna_info){
+      if(exists $replicate_zscores{$rowname."_".$colname."_rep2"}){
+        print REPSOUT "\t$replicate_zscores{$rowname.'_'.$colname.'_rep2'}";
+      }
+      else{
+        print REPSOUT "\tNA";
+      }
+    }
+    print REPSOUT "\n";
+
+    print REPSOUT "$rowname";
+    print REPSOUT "_rep3";
+    foreach my $colname (@colname_sirna_info){
+      if(exists $replicate_zscores{$rowname."_".$colname."_rep3"}){
+        print REPSOUT "\t$replicate_zscores{$rowname.'_'.$colname.'_rep3'}";
+      }
+      else{
+        print REPSOUT "\tNA";
+      }
+    }
+    print REPSOUT "\n";
+  }
   
-  my $configure_export_file_path = $configures{'screenDir_path'} . "Rnai_screen_analysis_configure_export.txt";
+  my $link_for_median_zscores = $configures{'hostname'} . $configures{'configure_export_new_file_path'} . "median_zscores_export_file.txt";
+  my $link_for_replicate_zscores = $configures{'hostname'} . $configures{'configure_export_new_file_path'} . "replicate_zscores_export_file.txt";
   
-  my $configure_export_new_file_path = $configures{'WebDocumentRoot'} . $configures{'configure_export_new_file_path'};
-  `cp $configure_export_file_path $configure_export_new_file_path`;
+  print "<a href=\"$link_for_median_zscores\">Download exported plate 11-12-13 median Z-score data </a></br>";
+  print "<p></p>";
+  print "<a href=\"$link_for_replicate_zscores\">Download exported plate 11-12-13 replicate Z-score data </a>";
   
-  my $link_to_configure_export_file = $configures{'hostname'} . "RNAi_screen_analysis_configure_export/";
+  ##
+  ## export pocscores - median/per replicate 
+  ##
+
+  # find the list of all summary files - blob
+  my @all_poc_summary_files;
   
-  print "<p>";
-  print "<a href = \"$link_to_configure_export_file\">Click here to download the file with analysis results for all the RNAi screens analysed.</a>";
-  print "</p>";
+  $query = "SELECT
+			  r.Summary_pocscores_file_path FROM
+			  Drug_screen_info r";
+
+  $query_handle = $dbh -> prepare ( $query );
+   					   #or die "Cannot prepare: " . $dbh -> errstr();
+  $query_handle -> execute();
+  
+  while (my $poc_sum_file_path = $query_handle -> fetchrow_array){
+  
+    push(@all_poc_summary_files, $poc_sum_file_path);
+  }
+  
+  # the list of paths above includes some screens we don't want to export
+  # but cannot delete until we get sudo rights. get the subset we do want
+  # to use by querying the mysql db.
+  
+  # write the list of cleaned up paths to a file that can be read by R to
+  # find the summary files to process
+  my $poc_summary_file_list_file = $configures{'WebDocumentRoot'} . $configures{'configure_export_new_file_path'} . "poc_summary_file_list.txt";
+  open FILESTOPROC, "> $poc_summary_file_list_file" or die "Can't write file $poc_summary_file_list_file: $!\n";
+  foreach my $poc_path (@all_poc_summary_files){
+    my $poc_modified_path = $poc_path;
+    $poc_modified_path =~ s/\.txt$/_with_rep_pocscores.txt/;
+   # if (! -e $poc_modified_path){
+    print FILESTOPROC "$poc_path\n";
+   # }
+  }
+  close FILESTOPROC;
+  
+  my $dir = $configures{'WebDocumentRoot'}.$configures{'configure_export_new_file_path'};
+
+  `cd $dir && R --vanilla < $configures{'get_replicate_zscores_script'}`;
+  
+  # when all summary files are processed, read each one and create a hash for all Z-scores
+  # $some_hash{$screen.$gene.$rep/'median'} = zscore
+  
+  my %poc_colname_sirna_info_seen;
+  my %poc_median_zscores;
+  my %poc_replicate_zscores;
+  my @poc_rowname_filenames = ();
+  my @poc_colname_sirna_info = ();  
+  foreach my $poc_path (@all_poc_summary_files){
+    my $poc_modified_path = $poc_path;
+    $poc_modified_path =~ s/\.txt$/_with_rep_pocscores.txt/;
+    open SUMMARY, "< $poc_modified_path" or die "Can't read summary file $poc_modified_path: $!\n";
+    my $poc_header = <SUMMARY>;
+    chomp $poc_header;
+    my @poc_col_names = split(/\t/, $poc_header);
+    my ($poc_plate_col, $poc_pos_col, $poc_score_col, $poc_geneid_col, $poc_conc_col, $poc_rep1_col, $poc_rep2_col, $poc_rep3_col);
+    for(my $i = 0; $i <= $#poc_col_names; $i ++){
+    
+      if($poc_col_names[$i] eq 'plate'){
+        $poc_plate_col= $i;
+      }
+      elsif($poc_col_names[$i] eq 'position'){
+        $poc_pos_col = $i;
+      }
+      elsif($poc_col_names[$i] eq 'score'){
+        $poc_score_col = $i;
+      }
+      elsif($poc_col_names[$i] eq 'GeneID'){
+        $poc_geneid_col = $i;
+      }
+      elsif($poc_col_names[$i] eq 'Concentration_pM' | $poc_col_names[$i] eq 'Concentration.pM.'){
+        $poc_conc_col = $i;
+      }
+      elsif($poc_col_names[$i] eq 'pocscore_rep1'){
+        $poc_rep1_col = $i;
+      }
+      elsif($poc_col_names[$i] eq 'pocscore_rep2'){
+        $poc_rep2_col = $i;
+      }
+      elsif($poc_col_names[$i] eq 'pocscore_rep3'){
+        $poc_rep3_col = $i;
+      }
+    }
+    defined($poc_plate_col) or die "poc_plate_col not defined";
+    defined($poc_pos_col) or die "poc_pos_col not defined";
+    defined($poc_score_col) or die "poc_score_col not defined";
+    defined($poc_geneid_col) or die "poc_geneid_col not defined";
+    defined($poc_conc_col) or die "poc_conc_col not defined";
+    defined($poc_rep1_col) or die "poc_rep1_col not defined";
+    defined($poc_rep2_col) or die "poc_rep2_col not defined";
+    defined($poc_rep3_col) or die "poc_rep3_col not defined";
+    
+    # make a hash key from:
+    # summary_file_name + plate + pos + geneID/- rep
+    my $poc_filename = $poc_modified_path;
+    $poc_filename =~ s/^.*\///;
+    $poc_filename =~ s/_with_rep_pocscores.txt$//;
+	push(@poc_rowname_filenames, $poc_filename); 
+	while(<SUMMARY>){
+	  my $poc_line = $_;
+	  chomp $poc_line;
+	  my @poc_fields = split(/\t/, $poc_line);
+	  my ($poc_plate, $poc_pos, $poc_score, $poc_geneid, $poc_conc, $pocrep1, $pocrep2, $pocrep3) = @poc_fields[$poc_plate_col,$poc_pos_col,$poc_score_col,$poc_geneid_col,$poc_conc_col,$poc_rep1_col,$poc_rep2_col,$poc_rep3_col];
+	  if ($poc_score ne "NA"){
+	    my $poc_score_key = $poc_filename . "_" . $poc_geneid . "_" . $poc_conc;
+	    unless (exists $poc_colname_sirna_info_seen{$poc_geneid . "_" . $poc_conc}){
+          push(@poc_colname_sirna_info, $poc_geneid . "_" . $poc_conc);
+        }
+        $poc_colname_sirna_info_seen{$poc_geneid . "_" . $poc_conc} = 1;
+	    $poc_median_zscores{$poc_score_key} = $poc_score;
+	    $poc_replicate_zscores{$poc_score_key . "_rep1"} = $pocrep1;
+	    $poc_replicate_zscores{$poc_score_key . "_rep2"} = $pocrep2;
+	    $poc_replicate_zscores{$poc_score_key . "_rep3"} = $pocrep3;
+	  }
+	}
+    close SUMMARY;
+  }
+  
+  # get array of each screen and array of each zscore*rep/median and write out
+  # a table as was done for the configure_export sub previously
+  
+  my $median_pocscores_file_path = $configures{'WebDocumentRoot'} . $configures{'configure_export_new_file_path'} . "median_pocscores_export_file.txt";
+  my $replicate_pocscores_file_path = $configures{'WebDocumentRoot'} . $configures{'configure_export_new_file_path'} . "replicate_pocscores_export_file.txt";
+  
+  open MEDOUT, "> $median_pocscores_file_path" or die "Can't write to median pocscores export file: $!\n";
+  open REPSOUT, "> $replicate_pocscores_file_path" or die "Can't write to replicate pocscores export file: $!\n";
+  
+  # write out the column headings (siRNA info etc)
+  print MEDOUT "screen";
+  print REPSOUT "screen";
+  foreach my $poc_colname (@poc_colname_sirna_info){
+     print MEDOUT "\t$poc_colname"; 
+     print REPSOUT "\t$poc_colname"; 
+  }
+  print MEDOUT "\n"; 
+  print REPSOUT "\n"; 
+  
+  # now write the data for each screen as a separate row
+  foreach my $poc_rowname (@poc_rowname_filenames){
+    print MEDOUT "$poc_rowname";
+    foreach my $poc_colname (@poc_colname_sirna_info){
+      if(exists $poc_median_zscores{$poc_rowname."_".$poc_colname}){
+        print MEDOUT "\t$poc_median_zscores{$poc_rowname.'_'.$poc_colname}";
+      }
+      else{
+        print MEDOUT "\tNA";
+      }
+    }
+    print MEDOUT "\n";
+
+    print REPSOUT "$poc_rowname";
+    print REPSOUT "_rep1";
+    foreach my $poc_colname (@poc_colname_sirna_info){
+      if(exists $poc_replicate_zscores{$poc_rowname."_".$poc_colname."_rep1"}){
+        print REPSOUT "\t$poc_replicate_zscores{$poc_rowname.'_'.$poc_colname.'_rep1'}";
+      }
+      else{
+        print REPSOUT "\tNA";
+      }
+    }
+    print REPSOUT "\n";
+
+    print REPSOUT "$poc_rowname";
+    print REPSOUT "_rep2";
+    foreach my $poc_colname (@poc_colname_sirna_info){
+      if(exists $poc_replicate_zscores{$poc_rowname."_".$poc_colname."_rep2"}){
+        print REPSOUT "\t$poc_replicate_zscores{$poc_rowname.'_'.$poc_colname.'_rep2'}";
+      }
+      else{
+        print REPSOUT "\tNA";
+      }
+    }
+    print REPSOUT "\n";
+
+    print REPSOUT "$poc_rowname";
+    print REPSOUT "_rep3";
+    foreach my $poc_colname (@poc_colname_sirna_info){
+      if(exists $poc_replicate_zscores{$poc_rowname."_".$poc_colname."_rep3"}){
+        print REPSOUT "\t$poc_replicate_zscores{$poc_rowname.'_'.$poc_colname.'_rep3'}";
+      }
+      else{
+        print REPSOUT "\tNA";
+      }
+    }
+    print REPSOUT "\n";
+  }
+  
+  my $link_for_median_pocscores = $configures{'hostname'} . $configures{'configure_export_new_file_path'} . "median_pocscores_export_file.txt";
+  my $link_for_replicate_pocscores = $configures{'hostname'} . $configures{'configure_export_new_file_path'} . "replicate_pocscores_export_file.txt";
+  
+  print "<p></p>";
+  print "<a href=\"$link_for_median_pocscores\">Download exported plate 11-12-13 median POC-score data </a></br>";
+  print "<p></p>";
+  print "<a href=\"$link_for_replicate_pocscores\">Download exported plate 11-12-13 replicate POC-score data </a>"; 
   
   print "$page_footer";
   print $q -> end_html;
   
 } #end of configure_export subroutine
+
 
 # ======================
 # Subroutine for show_qc

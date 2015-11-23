@@ -35,14 +35,18 @@ zScreen <- function(
   xa<-cellHTS2::annotate(xz, compoundlibrary, path=path)
   xa_summary<-cellHTS2::annotate(xsc, compoundlibrary, path=path)
   
+  ############################################################# 
   # top table
-  getTopTable(list("raw"=x, "normalized"=xn, "scored"=xa_summary), file=paste(path, summaryName, sep=""))
+  
+  summaryFile = paste(path, summaryName, sep="")
+  getTopTable(list("raw"=x, "normalized"=xn, "scored"=xa_summary), file=summaryFile)
   setSettings(list(
     plateList=list(reproducibility=list(include=TRUE, map=TRUE),
                    intensities=list(include=TRUE, map=TRUE)),
     screenSummary=list(scores=list(range=c(-20, 10), map=TRUE)))) 
 
-  ###########################################################
+
+  ##############################################################
   # write scores for each rep for this screen in the same folder
   scorefile<-paste(path, zscoreName, sep="")
   plates<-plate(xa)
@@ -54,14 +58,21 @@ zScreen <- function(
   combinedz<-data.frame(compound=geneAnno(xa), plate=plates, well=wells, zscore_rep1=scores_rep1, zscore_rep2=scores_rep2, zscore_rep3=scores_rep3)
   names(combinedz)<-c("Compound", "Plate", "Well", "Zscore_rep1", "Zscore_rep2", "Zscore_rep3")
   write.table(combinedz, scorefile, sep="\t", quote=FALSE, row.names=FALSE)
-
-    ###########################################################	
-    # write a QC report for zscores
-    if(reportHTML){
   
-      reportdir<-paste(path, reportdirName, sep="")
-      try(writeReport(raw=x, normalized=xn, scored=xsc, outdir=reportdir, 
-                force=TRUE, posControls= posControls, negControls= negControls, 
-                mainScriptFile="/Rnaidb_git/icr-gft-drugdb/batch_drugScreen_cellhts2_ZSCORES.R"))
+  ###########################################################
+  summaryComplete <- read.table(summaryFile, header=TRUE, sep="\t", stringsAsFactors=FALSE)
+  summaryComplete <- summaryComplete[ order(summaryComplete[,"plate"],summaryComplete[,"well"]), ]
+  summaryComplete <- cbind(summaryComplete, scores_rep1, scores_rep2, scores_rep3)
+  
+  write.table(summaryComplete, file = gsub(".txt", "_with_rep_zscores.txt", summaryFile), row.names=FALSE, sep="\t")
+  
+  ###########################################################	
+  # write a QC report for zscores
+  if(reportHTML){
+  
+    reportdir<-paste(path, reportdirName, sep="")
+    try(writeReport(raw=x, normalized=xn, scored=xsc, outdir=reportdir, 
+      force=TRUE, posControls= posControls, negControls= negControls, 
+      mainScriptFile="/Rnaidb_git/icr-gft-drugdb/batch_drugScreen_cellhts2_ZSCORES.R"))
     }
 }
