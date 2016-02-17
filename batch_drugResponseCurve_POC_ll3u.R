@@ -6,7 +6,9 @@
 ## for d~r analysis
 ##
 
-source("/Rnaidb_git/icr-gft-drugdb/DRC_functions_ll3u.R")
+source("/Rnaidb_git/drugdb_devel/icr-gft-drugdb/DRC_functions_ll3u.R")
+
+library(Hmisc)
 
 drcResult<- function(
   path="/Users/agulati/Desktop/drug_screen_batch_processing/drug_screen_output/Prostate_2014_03_31_CTG_drugscreen_22RV1_singleArm/",
@@ -32,6 +34,7 @@ drcResult<- function(
   mydrugs<-unique(scores$GeneID)
   mydrugs<-na.omit(mydrugs)
   mydrugs<-sort(mydrugs)
+  mydrugs <- mydrugs[ mydrugs != "EMPTY" & mydrugs != "POS" & mydrugs != "NEG" & mydrugs != "NEG2" ]
   
   report=data.frame(
     drug=character(), 
@@ -47,15 +50,31 @@ drcResult<- function(
     LOF_pval=numeric(),
     auc100_actual=numeric()
   )
-  
+  scores_sem <- NULL
+  for(i in 1:nrow(scores)){
+    scores_sem[i] <- sd(scores[i,c("normalized_r1_ch1","normalized_r2_ch1","normalized_r3_ch1")])/(3^0.5)
+  }
+  scores_with_sem <- data.frame(
+    scores,
+    sem=scores_sem
+  )
+  scores_with_sem$GeneID<-toupper(scores_with_sem$GeneID)
+    
   figs<-paste(path, drcFigures, sep="")
   pdf(figs, width=5, height=5)
   
   for(drug in mydrugs){
-    pl<-which(scores$GeneID==drug)[1]
-    playout<-scores$Layout[pl]
+    drug_rows <- which(scores_with_sem$GeneID == drug)
+    
+    mean_score <- apply(scores_with_sem[drug_rows,c("normalized_r1_ch1","normalized_r2_ch1","normalized_r3_ch1")], 1, mean)
+    score_conc <- log10(scores_with_sem[drug_rows,"Concentration_pM"]) 
+  
+    yplus <- mean_score + scores_with_sem[drug_rows,"sem"]
+    yminus <- mean_score - scores_with_sem[drug_rows,"sem"]
+    pl<-which(scores_with_sem$GeneID==drug)[1]
+    playout<-scores_with_sem$Layout[pl]
     # scored data 
-    mydata2<-subset(scores, subset=(GeneID==drug))
+    mydata2<-subset(scores_with_sem, subset=(GeneID==drug))
     mydata<-data.frame(response=c(mydata2$normalized_r1_ch1, mydata2$normalized_r2_ch1, mydata2$normalized_r3_ch1), dosage=rep(mydata2$Concentration_pM, 3))
     mydata$dosage<-as.numeric(as.character(mydata$dosage))
     drc<-getdrc(mydata)
@@ -86,11 +105,16 @@ drcResult<- function(
       auc100_actual=NA
     )    
     report=rbind(report, temp)
-    
+	plot(
+	  mydata$response~log10(mydata$dosage),
+	  main=paste(drug, " response in ", cell_line_name),
+	  xlab="Dose (log10 pM)",
+	  ylab="Surviving fraction",
+	  ylim=c(0.0, 1.50),
+	  lwd=2
+    )
     print("skipping setting SF and AUC values - no model?")
-    
-    next;  
-  }  
+  }else{  
   
   # set sf variables to NA before assignment
   # otherwise might get a stale value
@@ -170,6 +194,7 @@ drcResult<- function(
   
   plot(
     drc,
+    type="all",
     main=paste(drug, " response in ", cell_line_name),
     xlab="Dose (log10 pM)",
     #xlab="Dose (nM)",
@@ -180,6 +205,8 @@ drcResult<- function(
     #cex.main=1.4,
     lwd=2
   )
+  errbar(score_conc, mean_score, yplus, yminus, col="black", errbar.col="black", pch=19, add=TRUE)
+  
     if((sf80 < maxDose) | (!is.null(drc))) {
       lines(c(sf80,sf80), c(-1, 0.8), col="red")
       text(sf80, 0.86, labels="SF80", col="red")
@@ -207,9 +234,9 @@ drcResult<- function(
       auc100_actual=auc100_actual
     )   
     report=rbind(report, temp)
-  }  
+  }
+}  
   dev.off()
 
   write.table(report, file = reportName, sep = "\t", row.names=FALSE)
 }
-

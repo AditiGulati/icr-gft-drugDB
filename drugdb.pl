@@ -101,7 +101,7 @@ my $page_header = "<html>
 				   <a href=\"/cgi-bin/$script_name?show_all_screens=1\">Show all screens</a>\&nbsp;\&nbsp;
 				   <a href=\"/cgi-bin/$script_name?configure_export=1\">Configure export</a>\&nbsp;\&nbsp;
 				   </p>";
-
+				   
 # HTML strings used in add new screen:
 
 #my $tissue_file = $configures{'screenDir_path'} . "tissue_type.txt";
@@ -588,7 +588,7 @@ sub add_new_screen {
    
   ## get the existing platelist filenames from the database and display them in the popup menu ##
   
-  $query = "SELECT Platelist_file_location FROM Platelist_file_path";
+  $query = "SELECT Platelist_file_location FROM Platelist_file_path WHERE Platelist_file_path_ID > '9'";
   $query_handle = $dbh -> prepare ( $query );
      				#or die "Cannot prepare: " . $dbh -> errstr();
   $query_handle->execute();
@@ -612,9 +612,9 @@ sub add_new_screen {
   print "<p>Plate list file:<br />";
   
   print $q -> popup_menu ( -name => 'plate_list',
-  						  -value => \@platelist_path,
-   						  -default => 'Please select',
-   						  -id => "plist_file" );
+  						   -value => \@platelist_path,
+   						   -default => 'Please select',
+   						   -id => "plist_file" );
   
   print " - OR <br />";
   
@@ -633,7 +633,7 @@ sub add_new_screen {
   		
   ## get the existing template library filenames from the database and display them in the popup menu ##
   
-  $query = "SELECT Compound_library_file_location FROM Compound_library_file_path";
+  $query = "SELECT Compound_library_file_location FROM Compound_library_file_path"; 
   $query_handle = $dbh -> prepare ( $query );
    					#or die "Cannot prepare: " . $dbh -> errstr();
   $query_handle->execute();
@@ -680,7 +680,7 @@ sub add_new_screen {
   
   ## get the existing plateconf filenames from the database and display them in the popup menu ##
   
-  $query = "SELECT Plateconf_file_location FROM Plateconf_file_path";
+  $query = "SELECT Plateconf_file_location FROM Plateconf_file_path WHERE Plateconf_file_path_ID > '11'";
   $query_handle = $dbh -> prepare( $query );
     				   #or die "Cannot prepare: " . $dbh -> errstr();
   $query_handle -> execute();
@@ -722,7 +722,7 @@ sub add_new_screen {
   print "<a href =" . $configures{'hostname'} . "cgi-bin/$script_name?add_new_files=1\"> Add new plate configure file</a>";
   print "</p>";
   
- ## Enter information to store in the Description.txt file ##
+  ## Enter information to store in the Description.txt file ##
 
   print "<p>";
   print "Notes about this screen:<br />";
@@ -1348,6 +1348,14 @@ sub save_new_screen {
   my $screen_dir_name = $q -> param( "screen_dir_name" );
   my $screenDescription_filename;
   
+  if ( $gene_name_if_isogenic == "Enter gene name" || $gene_name_if_isogenic == "" ) {
+    $gene_name_if_isogenic = "";
+  }
+  
+ if ( $isogenic_mutant_description == "e.g. parental" || $isogenic_mutant_description == "" ) {
+    $isogenic_mutant_description = "";
+  }
+ 
   $gene_name_if_isogenic =~ s/\s+//g; 
   $gene_name_if_isogenic =~ s/\//-/g;
    
@@ -1368,8 +1376,11 @@ sub save_new_screen {
   $compound =~ s/\//-/g;
   $compound = uc($compound);
   
-  $compound_concentration =~ s/\s+//g;
-  $compound_concentration =~ s/\//-/g;
+  if ( $compound_concentration == "e.g. 100 ng" || $compound_concentration == "" ) {
+    $compound_concentration = "";
+  }
+
+  $compound_concentration =~ s/[^A-Z0-9_-]*//g;
   
   $isogenic_mutant_description =~ s/\s+//g;
   
@@ -1403,8 +1414,6 @@ sub save_new_screen {
 
   my $screenDir_path = $configures{'screenDir_path'};
   my $file_path = "$screenDir_path/$screen_dir_name";
-  
-  
 
   if ( -e $file_path ) {
  	my $message = "A screen with the same name already exists. Cannot make new RNAi screen directory $screen_dir_name in $screenDir_path";
@@ -1423,7 +1432,7 @@ sub save_new_screen {
     ## add screen directory name as prefix to all the filenames in the selected platelist file ##
 
     $plateconf_file_path = $configures{'WebDocumentRoot'} . $configures{'plateconf_folder'}.$plateconf.".txt";
-    $plateconf_target = $file_path."/".$screen_dir_name."_".$plateconf.".txt";
+    $plateconf_target = $file_path."/".$plateconf.".txt";
     copy $plateconf_file_path, $plateconf_target;
     
     #print "<p><div id=\"Note\">Selected plateconf file saved in the new screen directory...</div></p>";  
@@ -1431,34 +1440,34 @@ sub save_new_screen {
     ## match platelist name, selected from the drop down menu, to the file and store it in a variable ##   
       
     $platelist_file_path = $configures{'WebDocumentRoot'} . $configures{'platelist_folder'}.$platelist.".txt";
-    $platelist_target = $file_path."/".$screen_dir_name."_".$platelist.".txt";
+    $platelist_target = $file_path."/".$platelist.".txt";
     copy $platelist_file_path, $platelist_target;
-    $platelist_tmp_file = $file_path."/tmp_platelist_file.txt";
+   # $platelist_tmp_file = $file_path."/tmp_platelist_file.txt";
     
     #print "<p><div id=\"Note\">Selected platelist file saved in the new screen directory...</div></p>";  
   
-    $platelist_prefix = $screen_dir_name."_";
+   # $platelist_prefix = $screen_dir_name."_";
   
-    open IN, "< $platelist_target"
-      or die "Cannot open $platelist_target:$!\n";
-    open OUT, "> $platelist_tmp_file"
-      or die "Cannot open $platelist_tmp_file:$!\n";
-    while (<IN>) {
-      if ($_ =~ /^Filename/) {
-        print OUT $_;
-      }
-      else{
-        print OUT $platelist_prefix.$_;
-      }
-    }
-    close IN;
-    close OUT; 
-    move $platelist_tmp_file, $platelist_target;
+   # open IN, "< $platelist_target"
+   #   or die "Cannot open $platelist_target:$!\n";
+   # open OUT, "> $platelist_tmp_file"
+   #   or die "Cannot open $platelist_tmp_file:$!\n";
+   # while (<IN>) {
+   #   if ($_ =~ /^Filename/) {
+   #     print OUT $_;
+    #  }
+    #  else{
+    #    print OUT $platelist_prefix.$_;
+    #  }
+   # }
+   # close IN;
+   # close OUT; 
+   # move $platelist_tmp_file, $platelist_target;
     
     ## match templib name, selected from the drop down menu, to the file and store it in a variable ##
 
     $templib_file_path = $configures{'WebDocumentRoot'} . $configures{'templib_folder'}.$templib.".txt";
-    $templib_target = $file_path."/".$screen_dir_name."_".$templib.".txt"; 
+    $templib_target = $file_path."/".$templib.".txt"; 
     copy $templib_file_path, $templib_target; 
     
     #print "<p><div id=\"Note\">Selected template library file saved in the new screen directory...</div></p>";  
@@ -1599,45 +1608,9 @@ sub save_new_screen {
       
     print "<p><div id=\"Note\">Analysing...</div></p>"; 
     
-    close (GUIDEFILE); 
-    }
-   # else {
-   #   my $message = "Cannot create new screen directory as it already exists";
-    #  print "<p>";
-   #   print "<div id=\"Message\"><p><b>$message</b></p></div>";
-   #   print "</p>";
-   #   die "$!";
-   # }
-  ## Reanalysis ##
+    close (GUIDEFILE);
     
-   # if (( -e $file_path ) && ( $sicon1 eq 'ON' )) {
-    #  @ARGV = glob ( $file_path."/".$screen_dir_name."_".$plateconf.".txt" );
-   #   $^I = "";
-   #   while ( <> ) {
-    #    s/(\s)siCON1([\n\r])/$1empty$2/gi;
-    #    print;
-    #  }
-   #   print "<p><div id=\"Note\">Reanalysing with updated plateconf file...</div></p>"; 
-   # }
-  #  if (( -e $file_path ) && ( $sicon2 eq 'ON' )) {
-  #    @ARGV = glob ( $file_path."/".$screen_dir_name."_".$plateconf.".txt" );
-   #   $^I = "";
-  #    while ( <> ) {
-  #      s/(\s)siCON2([\n\r])/$1empty$2/gi;
-   #     print;
-   #   }
-  #    print "<p><div id=\"Note\">Reanalysing with updated plateconf file...</div></p>"; 
-  #  }
-  #  if (( -e $file_path ) && ( $allstar eq 'ON' )) {
-  #    @ARGV = glob ( $file_path."/".$screen_dir_name."_".$plateconf.".txt" );
-  #    $^I = "";
-  #    while ( <> ) {
-   #     s/(\s)allstar([\n\r])/$1empty$2/gi;
-  #      print;
-  #    }
-  #  print "<p><div id=\"Note\">Reanalysing with updated plateconf file...</div></p>"; 
-  #  }
-  
+  }
   my $guide = $guide_file;
   
   ##  run RNAi screen analysis scripts by calling R ##  
@@ -1672,13 +1645,6 @@ sub save_new_screen {
   
   my $rnai_screen_link_to_poc_report = $configures{'hostname'} . $configures{'rnai_screen_report_new_path'} . $screen_dir_name."_pocscores_reportdir/";
  
- 
-  ## copy the file with qc plots to the /usr/local/www/html/RNAi_screen_analysis_qc_plots ##
-  
- # my $rnai_screen_qc_original_path = $file_path."/".$screen_dir_name."_controls_qc.png"; 
- ## my $rnai_screen_qc_new_path = $configures{'WebDocumentRoot'} . $configures{'rnai_screen_qc_new_path'};
- # `cp -r $rnai_screen_qc_original_path $rnai_screen_qc_new_path`;
-  
   ## copy the file with rep1 vs rep2 scatter plots to the /usr/local/www/html/RNAi_screen_analysis_qc_plots ##
   
   my $scatter_plot_1_original_path = $file_path."/".$screen_dir_name."_qc_plot_file_1.png"; 
@@ -1711,25 +1677,13 @@ sub save_new_screen {
   my $drc_file_new_path = $configures{'WebDocumentRoot'} . $configures{'drug_screen_drc_figs_new_path'}; 		
   `cp -r $drc_file_original_path $drc_file_new_path`;
   
- #### my $rep_zscores_file_original_path = $file_path."/".$screen_dir_name."_zscores_summary_with_rep_zscores.txt"; 		
- ####### my $rep_zscores_file_new_path = $configures{'WebDocumentRoot'} . $configures{'reps_summary'}; 		
- ##### `cp -r $rep_zscores_file_original_path $rep_zscores_file_new_path`;
+  my $rep_zscores_file_original_path = $file_path."/".$screen_dir_name."_zscores_summary_with_rep_zscores.txt"; 		
+  my $rep_zscores_file_new_path = $configures{'WebDocumentRoot'} . $configures{'reps_summary'}; 		
+  `cp -r $rep_zscores_file_original_path $rep_zscores_file_new_path`;
 
-###### my $rep_pocscores_file_original_path = $file_path."/".$screen_dir_name."_pocscores_summary_with_rep_pocscores.txt"; 		
-######  my $rep_pocscores_file_new_path = $configures{'WebDocumentRoot'} . $configures{'reps_summary'}; 		
-###### `cp -r $rep_pocscores_file_original_path $rep_pocscores_file_new_path`;
-  
- ## copy the file with correlation coefficients for the reps to the /usr/local/www/html/RNAi_screen_analysis_separate_zprime_folder ##
-  
- ########not displaying QC boxplots 150913 ##########
- # my $rnai_screen_sep_zprime_original_path = $file_path."/" . $screen_dir_name . "_separate_zprime.txt"; 		
- # my $rnai_screen_sep_zprime_new_path = $configures{'WebDocumentRoot'} . $configures{'rnai_screen_sep_zprime_new_path'}; 		
- # `cp -r $rnai_screen_sep_zprime_original_path $rnai_screen_sep_zprime_new_path`;
-  
-  ## Display the link to screen analysis qc plots on the save new screen page ##
-  
-  #######my $rnai_screen_link_to_qc_plots = $configures{'hostname'} . $configures{'rnai_screen_qc_new_path'} . $screen_dir_name . "_controls_qc.png";
-  ####entering 'NA' to the database instead of QC plot link
+  my $rep_pocscores_file_original_path = $file_path."/".$screen_dir_name."_pocscores_summary.txt"; 		
+  my $rep_pocscores_file_new_path = $configures{'WebDocumentRoot'} . $configures{'reps_summary'}; 		
+  `cp -r $rep_pocscores_file_original_path $rep_pocscores_file_new_path`;
   
   my $rnai_screen_link_to_qc_plots = "NA";
   
@@ -1737,71 +1691,8 @@ sub save_new_screen {
   my $drug_screen_link_to_drc_file = $configures{'hostname'} . $configures{'drug_screen_drc_figs_new_path'} . $screen_dir_name . "_pocscores_drugresponse.txt";
   
   my $drug_screen_link_to_rep_zscores = $configures{'hostname'} . $configures{'reps_summary'} . $screen_dir_name . "_zscores_summary_with_rep_zscores.txt";
-  my $drug_screen_link_to_rep_pocscores = $configures{'hostname'} . $configures{'reps_summary'} . $screen_dir_name . "_pocscores_summary_with_rep_pocscores.txt";
+  my $drug_screen_link_to_rep_pocscores = $configures{'hostname'} . $configures{'reps_summary'} . $screen_dir_name . "_pocscores_summary.txt";
   
-  #return $rnai_screen_link_to_qc_plots;
-  
-########################### commented out by Aditi 150912 #########################  
-  ############my $zPrime = $file_path."/".$screen_dir_name."_zprime.txt";
-  
-  ## Capture zprime value in a variable ##
-  
-  ############my $zp_value = '';
-  ##############open IN, "< $zPrime" 
-  ##############  or die "Cannot read z-prime values from $zPrime: $!\n";
-  ############my $rep_count = 0;
-  #############while(<IN>) {
-   ########### if ($_ =~ /Channel/) {
-   #############   next;
-   ################# }
-  ##############  my $value = $_;
-   ############# chomp $value;
-    #round off to the zprime values to two decimal places
-   ############# $value = sprintf "%.2f", $value;
-    #count number of plate replicates and write the calculated zprime for each replicate
-  ###########  $rep_count ++;
-  ###############  $zp_value = $zp_value . "Rep" . $rep_count . "(" . $value  . "),";
- ############ }
- ############ close IN; 
- ################################################################################
-  
-  #print "<p>";
-  #print "<p><div id=\"Note\">Generated QC plots...</div></p>";
-  #print "</p>";
-  
-  #print "<p>";
-  #print "<p><div id=\"Note\">Calculated correlation coefficient...</div></p>";
-  #print "</p>";
-  
-  # =====================
-  # Populate the database
-  # =====================
-  
-  ## 1. Store user info in the database ##
- 
- # open ( FILE, "/usr/lib/cgi-bin/users.txt" )
-    # or die "Cannot open /usr/lib/cgi-bin/users.txt:$!\n";
-  
-  #foreach my $line ( <FILE> ) {
-  #  chomp $line;
-  #  my ( $username, $password ) = split( /\t/,$line );
-    
-   # $query_handle = $dbh -> do ( "INSERT INTO User_info (
-	#User_info_ID, 
-    #Username, 
-   # Password) 
-  #  VALUES (
- #   DEFAULT, 
-#    '$username', 
- #   '$password' ) ");
-    
-    #$query_handle = $dbh -> prepare ( $query );
-       					#or die "Cannot prepare: " . $dbh -> errstr();
-  #$query_handle -> execute()
-    #or die "SQL Error: " . $query_handle -> errstr();
-    #$query_handle -> finish();
-  #}
-  #close FILE;
   
   ## 2. Store new isogenic set entered by the user into the database ##
   
@@ -1811,26 +1702,12 @@ sub save_new_screen {
   
   if ($is_isogenic eq 'ON') {
     $is_isogenic_screen = "YES";
-   # if ( $ISOGENIC_SET eq "Please select" ) {
-   #   my $query = "INSERT INTO Name_of_set_if_isogenic ( 
-    #    					   Name_of_set_if_isogenic) 
-     #   					   VALUES (
-     #   					   '$new_isogenic_set' )";
-     # my $query_handle = $dbh -> prepare ( $query );
-   					      # or die "Cannot prepare: " . $dbh -> errstr();
-     # $query_handle -> execute();
-        #or die "SQL Error: ".$query_handle -> errstr();    
-   #   $ISOGENIC_SET = $new_isogenic_set;
-      #$query_handle->finish();
-   # }
   }
   else {
     $is_isogenic_screen = "NO";
     $gene_name_if_isogenic = "NA";
     $isogenic_mutant_description = "NA";
     $method_of_isogenic_knockdown = "NA";
- #   $ISOGENIC_SET = "NA";
- #   $new_isogenic_set = "NA";
   }
   
   if ($is_drug_screen eq 'ON')
@@ -1840,13 +1717,52 @@ sub save_new_screen {
   else
   {
   	$is_drug_screen = "NO";
-  	$compound = "NA";
-	$compound_concentration = "NA";
-	$dosing_regime = "NA";
+  	$compound = "";
+	$compound_concentration = "";
+	$dosing_regime = "";
   }
   
-  # save summary file path and dose response file pathin a variable ao that it can be stored in Drug_screen_info table
+  ## Add screen metadata to Guide file ##
+  
+    my $info_file = $screen_dir_name."_screen_details.txt";
+  
+    open INFOFILE, '>', $file_path."/".$info_file 
+      or die "Cannot open $file_path:$!\n";
+    
+    print INFOFILE 
+      "SCREEN DETAILS:\n\n",
+	  "Drug_screen_name:  $screen_dir_name\n",
+	  "Tissue_of_origin:  $tissue_type\n",
+	  "Cell_line:  $cell_line_name\n",
+	  "Date_of_run:  $date_of_run\n",
+	  "Operator:  $operator\n",
+	  "Collaborator:  $collaborator\n",
+	  "Cells_per_well:  $cells_per_well\n",
+	  "Length_of_assay:  $length_of_assay\n",
+	  "Instrument_name:  $instrument\n",
+	  "Compound_library_name:  $templib\n",
+	  "Plate_list_file_name:  $platelist\n",
+	  "Plate_conf_file_name:  $plateconf\n",
+	  "Is_isogenic:  $is_isogenic_screen\n",
+	  "Gene_name_if_isogenic:  $gene_name_if_isogenic\n",
+	  "Isogenic_mutant_description:  $isogenic_mutant_description\n",
+	  "Method_of_isogenic_knockdown:  $method_of_isogenic_knockdown\n",
+	  "Compound:  $compound\n",
+	  "Compound_concentration:  $compound_concentration\n",
+	  "Dosing_regime:  $dosing_regime\n";
+	  
+    print "<p><div id=\"Note\">Analysing...</div></p>"; 
+    
+    close (INFOFILE);  
+
+   my $info_file_original_path = $file_path."/".$screen_dir_name."_screen_details.txt";
+   my $info_file_new_path = $configures{'WebDocumentRoot'} . $configures{'info_file'};
+   `cp -r $info_file_original_path $info_file_new_path `;
+   my $drug_screen_link_to_metadata = $configures{'hostname'} . $configures{'info_file'} . $screen_dir_name . "_screen_details.txt";
+  
+  # save summary file path and dose response file path in a variable so that it can be stored in Drug_screen_info table
   my $summary_file_complete = $file_path."/".$screen_dir_name."_pocscores_summary.txt"; 
+  my $summary_zscores_file_complete = $file_path."/".$screen_dir_name."_zscores_summary.txt";
   my $drc_file_complete = $file_path."/".$screen_dir_name."_pocscores_drugresponse.txt"; 
   
   ## 3. Store new Rnai screen metadata in the database ##
@@ -1875,7 +1791,12 @@ sub save_new_screen {
 			  Drug_screen_link_to_qc_plots,
 			  Drug_screen_link_to_drc_plots,
 			  Drug_screen_link_to_drc_file,
+			  Drug_screen_link_to_rep_zscores,
+			  Drug_screen_link_to_rep_pocscores,
+			  Drug_screen_link_to_metadata,
 			  Zprime,
+			  Summary_file_path,
+			  Summary_pocscores_file_path,
 			  Notes,   
 			  Instrument_used_Instrument_used_ID,   
 			  Tissue_type_Tissue_type_ID,    
@@ -1907,7 +1828,12 @@ sub save_new_screen {
 				'$rnai_screen_link_to_qc_plots',
 				'$drug_screen_link_to_drc_plots',
 				'$drug_screen_link_to_drc_file',
+				'$drug_screen_link_to_rep_zscores',
+				'$drug_screen_link_to_rep_pocscores',
+				'$drug_screen_link_to_metadata',
 				'NA',
+				'$summary_zscores_file_complete',
+				'$summary_file_complete',
 				'$notes', 
 				( SELECT Instrument_used_ID FROM Instrument_used WHERE Instrument_name = '$instrument' ),
 				( SELECT Tissue_type_ID FROM Tissue_type WHERE Tissue_of_origin = '$tissue_type' ), 
@@ -2103,7 +2029,15 @@ sub save_new_screen {
   print "<p>";
   print "<a href = \"$drug_screen_link_to_drc_file\">View DRC result file</a>";
   print "<p>";
-  
+    
+  print "<p>";
+  print "<a href = \"$drug_screen_link_to_rep_zscores\">View topTable with replicate Z-scores</a>";
+  print "<p>";
+
+  print "<p>";
+  print "<a href = \"$drug_screen_link_to_rep_pocscores\">View topTable with replicate POC-scores</a>";
+  print "<p>";
+
   print "$page_footer";
   print $q -> end_html;
 }
@@ -2827,46 +2761,114 @@ sub save_new_uploaded_templib_file {
 # ==================================
 # Subroutine for showing all screens
 # ==================================
- 
+
+my $show_all_screens_page_header = "<html>
+				  				    <head>
+									<meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\" />
+									<title>GFT DRUG database</title>
+									<link rel=\"stylesheet\" type=\"text/css\" media=\"screen\"  href=\"/css/rnaidb.css\" />
+									<meta name=\"viewport\" content=\"width=1000, initial-scale=0.5, minimum-scale=0.45\" />
+								    <script src=\"jquery-1.4.1.min.js\"></script>
+								    <script>
+								      $(document).ready(function() {
+								      $(\"#searchInput\").keyup(function(){
+								   //hide all the rows
+								      $(\"#fbody\").find(\"tr\").hide();
+								      
+								  //split the current value of searchInput
+								      var data = this.value.split(\" \");
+								 //create a jquery object of the rows
+								    var jo = $(\"#fbody\").find(\"tr\");
+		   
+							     //Recusively filter the jquery object to get results.
+								    $.each(data, function(i, v){
+								    jo = jo.filter(\"*:contains(\'\"+v+\"\')\");
+								    });
+							     //show the rows that match.
+								   jo.show();
+							     //Removes the placeholder text  
+   
+							       }).focus(function(){
+							       this.value=\"\";
+							       $(this).css({\"color\":\"black\"});
+							       $(this).unbind(\'focus\');
+							     }).css({\"color\":\"#C0C0C0\"});  
+						      });
+						      </script>
+							  </head>
+							  <body>
+							  <div id=\"Box\"></div><div id=\"MainFullWidth\">
+									<a href=$configures{'hostname'}><img src=\"http://gft.icr.ac.uk/images/ICR_GFT_drugDB_logo_placeholder.png\" width=415px height=160px></a>
+									<p>
+									<a href=\"/cgi-bin/$script_name?add_new_screen=1\">Add new screen</a>\&nbsp;\&nbsp;
+									<a href=\"/cgi-bin/$script_name?show_all_screens=1\">Show all screens</a>\&nbsp;\&nbsp;
+									<a href=\"/cgi-bin/$script_name?configure_export=1\">Configure export</a>\&nbsp;\&nbsp;
+									</p>
+							  <input id=\"searchInput\" value=\"Type To Filter\"><br/>
+								<table>
+								  <thead><tr>
+								    <th>Cell line</th>
+								    <th>Tissue</th>
+									<th>Date</th>
+									<th>Operator</th>
+									<th>Compound*Conc</th>
+									<th>Isogenic gene*Description</th>
+									<th>Link to cellHTS2 analysis Z-score report</th>
+									<th>Link to cellHTS2 analysis POC-score report</th>
+									<th>View/Download QC plots</th>
+									<th>View/Download DRC plots</th>
+									<th>View/Download DRC file</th>
+									<th>View/Download rep Z-scores</th>
+									<th>View/Download rep POC-scores</th>
+									<th>View/Download screen info</th>
+									<th>Screen info</th>
+									<th>Remove_screens</th>
+								  </tr></thead>
+								<tbody id=\"fbody\">";
+				  
+my $show_all_screens_page_footer = "<!-- end Box -->
+								  </tbody>
+								</table>
+							  </div> <!-- end Main --></div>
+							</body>
+						  </html>";
+						  
 sub show_all_screens { 
   print $q -> header ( "text/html" );
   print "$page_header";
   print "<h1>Available screens:</h1>";
-    
-  print "<table>";
+  
+  my $check_screens = $q -> param ( "check_screens" );
+  my $remove_screens = $q -> param ( "Remove_screens" );
+ 
+ print "<table border=\"1\" style=\"width:100%\">";
+ ####print "<table border=\"1\" style=\"border-collapse: collapse\">";
  
   my $query = "SELECT
-			  r.Drug_screen_name,
-			  t.Tissue_of_origin,
-			  r.Cell_line,
+  			  r.QC,
+  			  r.Cell_line,
+  			  t.Tissue_of_origin,
 			  r.Date_of_run,
 			  r.Operator,
-			  r.Collaborator,
-			  r.Cells_per_well,
-			  r.Length_of_assay,
-			  i.Instrument_name,
-			  r.Compound_library_name,
-			  r.Plate_list_file_name,
-			  r.Plate_conf_file_name,
-			  r.Is_isogenic,
-			  r.Gene_name_if_isogenic,
-			  r.Isogenic_mutant_description,
-			  r.Method_of_isogenic_knockdown,
 			  r.Compound,
 			  r.Compound_concentration,
-			  r.Dosing_regime,
+			  r.Gene_name_if_isogenic,
+			  r.Isogenic_mutant_description,
 			  r.Drug_screen_link_to_z_report,
 			  r.Drug_screen_link_to_poc_report,
+			  r.Plate_conf_file_name,
 			  r.Drug_screen_link_to_drc_plots,
 			  r.Drug_screen_link_to_drc_file,
 			  r.Drug_screen_link_to_rep_zscores, 
-			  r.Drug_screen_link_to_rep_pocscores FROM
-			  Drug_screen_info r,
-			  Instrument_used i,
-			  Tissue_type t WHERE 
-			  r.Instrument_used_Instrument_used_ID = i.Instrument_used_ID AND
+			  r.Drug_screen_link_to_rep_pocscores,
+			  r.Drug_screen_link_to_metadata,
+			  r.Drug_screen_name,
+			  r.Drug_screen_info_ID FROM
+			  Drug_screen_info r, 
+			  Tissue_type t WHERE
 			  r.Tissue_type_Tissue_type_ID = t.Tissue_type_ID GROUP BY 
-			  r.Drug_screen_info_ID order by Cell_line ASC";
+			  r.Drug_screen_info_ID ORDER BY
+			  Cell_line ASC";
     
   my $query_handle = $dbh -> prepare ( $query );
    					   #or die "Cannot prepare: " . $dbh -> errstr();
@@ -2875,300 +2877,69 @@ sub show_all_screens {
    
   print "<td align=left valign=top>\n";
   
-  print "<th>";
-  print "Drug screen name";
-  print "</th>";
-  
-  print "<th>";
-  print "Tissue of origin";
-  print "</th>";
-  
-  print "<th>";
-  print "    ";
-  print "</th>"; 
-  
-  print "<th>";
+  print "<th align=left>";
   print "Cell line";
   print "</th>";
   
-  print "<th>";
-  print "    ";
+  print "<th align=left>";
+  print "Tissue";
   print "</th>";
   
-  print "<th>";
-  print "    ";
-  print "</th>";  
-  
-  print "<th>";
-  print "Date of run";
+  print "<th align=left>";
+  print "Date";
   print "</th>";
   
-  print "<th>";
-  print "    ";
-  print "</th>"; 
-  
-  print "<th>";
-  print "    ";
-  print "</th>"; 
-  
-  print "<th>";
+  print "<th align=left>";
   print "Operator";
   print "</th>";
   
-  print "<th>";
-  print "    ";
-  print "</th>"; 
-  
-  print "<th>";
-  print "Link to cellHTS2 analysis Z-score report";
+  print "<th align=left>";
+  print "Compound*Conc";
   print "</th>";
   
-  print "<th>";
-  print "    ";
+  print "<th align=left>";
+  print "Isogenic gene*Description";
+  print "</th>";
+  
+  print "<th align=left>";
+  print "Link to cellHTS2 analysis Z-score report";
   print "</th>"; 
   
-  print "<th>";
-  print "    ";
-  print "</th>"; 
-  
-  print "<th>";
+  print "<th align=left>";
   print "Link to cellHTS2 analysis POC-score report";
   print "</th>";
   
-  print "<th>";
-  print "    ";
-  print "</th>";
-  
-  print "<th>";
-  print "    ";
-  print "</th>";  
-  
-  print "<th>";
+  print "<th align=left>";
   print "View/Download QC plots";
   print "</th>";
   
-  print "<th>";
-  print "    ";
-  print "</th>";
-  
-  print "<th>";
-  print "    ";
-  print "</th>";  
-  
-  print "<th>";
+  print "<th align=left>";
   print "View/Download DRC plots";
   print "</th>";
   
-  print "<th>";
-  print "    ";
-  print "</th>";
-  
-  print "<th>";
-  print "    ";
-  print "</th>";  
-  
-  print "<th>";
+  print "<th align=left>";
   print "View/Download DRC file";
   print "</th>";
   
-  print "<th>";
-  print "    ";
-  print "</th>";
-  
-  print "<th>";
-  print "    ";
-  print "</th>";  
-  
-  print "<th>";
+  print "<th align=left>";
   print "View/Download rep Z-scores";
   print "</th>";
   
-  print "<th>";
-  print "    ";
-  print "</th>";
-  
-  print "<th>";
-  print "    ";
-  print "</th>";  
-  
-  print "<th>";
+  print "<th align=left>";
   print "View/Download rep POC-scores";
   print "</th>";
-  
-  print "<th>";
-  print "    ";
-  print "</th>"; 
-  
-  print "<th>";
-  print "    ";
-  print "</th>"; 
-  
-  print "<th>";
-  print "Collaborator";
+    
+  print "<th align=left>";
+  print "View/Download screen details";
   print "</th>";
   
-  print "<th>";
-  print "    ";
-  print "</th>"; 
-  
-  print "<th>";
-  print "    ";
-  print "</th>"; 
-  
-  print "<th>";
-  print "Cells per well";
+  print "<th align=left>";
+  print "Remove screens";
   print "</th>";
-  
-  print "<th>";
-  print "    ";
-  print "</th>"; 
-  
-  print "<th>";
-  print "    ";
-  print "</th>"; 
-  
-  print "<th>";
-  print "Length of assay";
-  print "</th>";
-  
-  print "<th>";
-  print "    ";
-  print "</th>"; 
-  
-  print "<th>";
-  print "    ";
-  print "</th>"; 
-  
-  print "<th>";
-  print "    ";
-  print "</th>"; 
-  
-  print "<th>";
-  print "Instrument name";
-  print "</th>";
-  
-  print "<th>";
-  print "    ";
-  print "</th>"; 
-  
-  print "<th>";
-  print "    ";
-  print "</th>"; 
-  
-  print "<th>";
-  print "Compound library name";
-  print "</th>";
-  
-  print "<th>";
-  print "    ";
-  print "</th>";
-  
-  print "<th>";
-  print "    ";
-  print "</th>";  
-  
-  print "<th>";
-  print "Platelist file name";
-  print "</th>";
-  
-  print "<th>";
-  print "    ";
-  print "</th>"; 
-
-  print "<th>";
-  print "Plateconf file name";
-  print "</th>";
-  
-  print "<th>";
-  print "    ";
-  print "</th>";
-  
-  print "<th>";
-  print "    ";
-  print "</th>";  
-
-  print "<th>";
-  print "Is isogenic or not";
-  print "</th>";
-  
-  print "<th>";
-  print "    ";
-  print "</th>";
-  
-  print "<th>";
-  print "    ";
-  print "</th>";  
-  
-  print "<th>";
-  print "Gene name if isogenic";
-  print "</th>";
-
-  print "<th>";
-  print "    ";
-  print "</th>";
-  
-  print "<th>";
-  print "    ";
-  print "</th>";  
-   
-  print "<th>";
-  print "Isogenic mutant description";
-  print "</th>";
-  
-  print "<th>";
-  print "    ";
-  print "</th>";
-  
-  print "<th>";
-  print "    ";
-  print "</th>";  
-  
-  print "<th>";
-  print "Method of isogenic knockdown";
-  print "</th>";
-  
-  print "<th>";
-  print "    ";
-  print "</th>";
-  
-  print "<th>";
-  print "    ";
-  print "</th>";
-  
-  print "<th>";
-  print "Compound";
-  print "</th>";
-  
-  print "<th>";
-  print "    ";
-  print "</th>";
-  
-  print "<th>";
-  print "    ";
-  print "</th>"; 
-  
-  print "<th>";
-  print "Compound concentration";
-  print "</th>";
-  
-  print "<th>";
-  print "    ";
-  print "</th>";
-  
-  print "<th>";
-  print "    ";
-  print "</th>"; 
-  
-  print "<th>";
-  print "Dosing regime";
-  print "</th>";
-  
-  #print "<th>";
-  #print "Zprime";
-  #print "</th>"; 
   
   print "</td>";
  
+  my $row;
   while ( my @row = $query_handle -> fetchrow_array ) {
   
     print "<tr>";
@@ -3176,315 +2947,86 @@ sub show_all_screens {
     print "<td align=left valign=top>\n";
     
     print "<td>";
-    print "$row[0]";
-    print "</td>"; 
-    
-  #  print "<td>";
-  #  print "    ";
-  #  print "</td>";  
-    
-    print "<td>";
     print "$row[1]";
-    print "</td>"; 
-    
-  #  print "<td>";
-  #  print "    ";
-  #  print "</td>";
-    
-    print "<td>";
-    print "    ";
-    print "</td>";  
+    print "</td>";
     
     print "<td>";
     print "$row[2]";
     print "</td>"; 
     
     print "<td>";
-    print "    ";
-    print "</td>";
-    
-    print "<td>";
-    print "    ";
-    print "</td>"; 
-    
-    print "<td>";
     print "$row[3]";
-    print "</td>"; 
-    
-    print "<td>";
-    print "    ";
     print "</td>";
-    
-    print "<td>";
-    print "    ";
-    print "</td>"; 
     
     print "<td>";
     print "$row[4]";
+    print "</td>";
+    
+    print "<td>";
+    print "$row[5]*$row[6]";
     print "</td>"; 
     
-     print "<td>";
-    print "    ";
-    print "</td>";
+    print "<td>";
+    print "$row[7]*$row[8]";
+    print "</td>"; 
    
     print "<td>";
-    print "<a href=\"$row[19]\" >Z-score analysis report</a>";
+    print "<a href=\"$row[9]\" >Z-score report</a>";
     print "</td>"; 
     
     print "<td>";
-    print "    ";
+    print "<a href=\"$row[10]\" >POC-score report</a>";
+    print "</td>"; 
+    
+    print "<td>";
+    print "<a href=" . $configures{'hostname'} . "cgi-bin/$script_name?show_qc=1\&screen_dir_name=$row[17]\&plate_conf=$row[11]\">QC plots</a>";
+    print "</td>"; 
+    
+    print "<td>";
+    print "<a href=\"$row[12]\" >DRC plots</a>";
+    print "</td>"; 
+    
+    print "<td>";
+    print "<a href=\"$row[13]\" >AUC/SF scores</a>";
+    print "</td>"; 
+    
+    print "<td>";
+    print "<a href=\"$row[14]\" >Rep Z-scores</a>";
     print "</td>";
     
     print "<td>";
-    print "    ";
-    print "</td>"; 
-    
-    print "<td>";
-    print "<a href=\"$row[20]\" >POC-score analysis report</a>";
-    print "</td>"; 
-    
-    print "<td>";
-    print "    ";
-    print "</td>";
-    
-    print "<td>";
-    print "    ";
-    print "</td>"; 
-    
-    print "<td>";
-    print "<a href=" . $configures{'hostname'} . "cgi-bin/$script_name?show_qc=1\&screen_dir_name=$row[0]\&plate_conf=$row[11]\">QC</a>";
-    print "</td>"; 
-    
-    print "<td>";
-    print "    ";
-    print "</td>";
-    
-    print "<td>";
-    print "    ";
-    print "</td>"; 
-    
-    print "<td>";
-    print "<a href=\"$row[21]\" >DRC plots</a>";
-    print "</td>"; 
-    
-    print "<td>";
-    print "    ";
-    print "</td>";
-    
-    print "<td>";
-    print "    ";
-    print "</td>"; 
-    
-    print "<td>";
-    print "<a href=\"$row[22]\" >AUC/SF scores</a>";
-    print "</td>"; 
-    
-    print "<td>";
-    print "    ";
-    print "</td>";
-    
-    print "<td>";
-    print "    ";
-    print "</td>"; 
-    
-    print "<td>";
-    print "<a href=\"$row[23]\" >rep Z-scores</a>";
-    print "</td>";
-    
-    print "<td>";
-    print "    ";
-    print "</td>";
-    
-    print "<td>";
-    print "    ";
-    print "</td>"; 
-    
-    print "<td>";
-    print "<a href=\"$row[24]\" >rep POC-scores</a>";
-    print "</td>";
-    
-    print "<td>";
-    print "    ";
-    print "</td>";
-    
-    print "<td>";
-    print "    ";
-    print "</td>"; 
-    
-    print "<td>";
-    print "$row[5]";
-    print "</td>"; 
-    
-    print "<td>";
-    print "    ";
-    print "</td>";
-    
-    print "<td>";
-    print "    ";
-    print "</td>"; 
-    
-    print "<td>";
-    print "$row[6]";
-    print "</td>"; 
-    
-    print "<td>";
-    print "    ";
-    print "</td>";
-    
-    print "<td>";
-    print "    ";
-    print "</td>"; 
-     
-    print "<td>";
-    print "$row[7]";
-    print "</td>"; 
-    
-    print "<td>";
-    print "    ";
-    print "</td>";
-    
-    print "<td>";
-    print "    ";
-    print "</td>"; 
-    
-    print "<td>";
-    print "    ";
-    print "</td>"; 
-    
-    print "<td>";
-    print "$row[8]";
-    print "</td>";
-    
-    print "<td>";
-    print "    ";
-    print "</td>";
-    
-    print "<td>";
-    print "    ";
-    print "</td>";
-   
-    print "<td>";
-    print "$row[9]";
-    print "</td>"; 
-    
-    print "<td>";
-    print "    ";
-    print "</td>";
-    
-    print "<td>";
-    print "    ";
-    print "</td>"; 
-    
-    print "<td>";
-    print "$row[10]";
-    print "</td>"; 
-    
-    print "<td>";
-    print "    ";
-    print "</td>";
-    
-    print "<td>";
-    print "    ";
-    print "</td>";  
-    
-    print "<td>";
-    print "$row[11]";
-    print "</td>"; 
-    
-    print "<td>";
-    print "    ";
-    print "</td>";
-    
-    print "<td>";
-    print "    ";
-    print "</td>"; 
-    
-    print "<td>";
-    print "$row[12]";
-    print "</td>"; 
-    
-    print "<td>";
-    print "    ";
-    print "</td>";
-    
-    print "<td>";
-    print "    ";
-    print "</td>"; 
-    
-    print "<td>";
-    print "$row[13]";
-    print "</td>";
-    
-    print "<td>";
-    print "    ";
-    print "</td>";
-    
-    print "<td>";
-    print "    ";
-    print "</td>"; 
-    
-    print "<td>";
-    print "$row[14]";
-    print "</td>";
-    
-    print "<td>";
-    print "    ";
-    print "</td>";
-    
-    print "<td>";
-    print "    ";
-    print "</td>"; 
-    
-    print "<td>";
-    print "$row[15]";
-    print "</td>";
-    
-    print "<td>";
-    print "    ";
-    print "</td>";
-    
-    print "<td>";
-    print "    ";
-    print "</td>"; 
-    
-    print "<td>";
-    print "$row[16]";
-    print "</td>";
-    
-    print "<td>";
-    print "    ";
-    print "</td>";
-    
-    print "<td>";
-    print "    ";
-    print "</td>"; 
-    
-    print "<td>";
-    print "$row[17]";
-    print "</td>";
-    
-    print "<td>";
-    print "    ";
-    print "</td>";
-    
-    print "<td>";
-    print "    ";
-    print "</td>"; 
-    
-    print "<td>";
-    print "$row[18]";
+    print "<a href=\"$row[15]\" >Rep POC-scores</a>";
     print "</td>";
 
+    print "<td>";
+    print "<a href=\"$row[16]\" >Screen details</a>";
     print "</td>";
-    
+ 
+    print "<td>";
+    print $q -> checkbox( -name=>'check_screens',
+    					  -checked=>0,
+   					      -value=>'ON',
+    					  -label=>'',
+    					  -id=>$row[18]);
+    print "</td>"; 
+
+    print "</td>";
     print "</tr>";
 
   } #end of while loop
-  
- # $query_handle -> finish();
 
   print "</table>";
- 
+  
+  print "<td>";
+  
+  print "<p></p><p></p>";
+
+#  print "<b>";
+ # print "<input type=\"submit\" id=\"Remove_screens\" value=\"Remove_screens\" name=\"Remove_screens\"/>";
+ # print "</b>";
+  
+  print "</td>";  
+
   print "$page_footer";
   print $q -> end_html;
 
@@ -3623,8 +3165,8 @@ sub configure_export {
   # get array of each screen and array of each zscore*rep/median and write out
   # a table as was done for the configure_export sub previously
   
-  my $median_zscores_file_path = $configures{'WebDocumentRoot'} . $configures{'configure_export_new_file_path'} . "median_zscores_export_file.txt";
-  my $replicate_zscores_file_path = $configures{'WebDocumentRoot'} . $configures{'configure_export_new_file_path'} . "replicate_zscores_export_file.txt";
+  my $median_zscores_file_path = $configures{'WebDocumentRoot'} . $configures{'configure_export_new_file_path'} . "median_drug_zscores_export_file_complete.txt";
+  my $replicate_zscores_file_path = $configures{'WebDocumentRoot'} . $configures{'configure_export_new_file_path'} . "replicate_drug_zscores_export_file_complete.txt";
   
   open MEDOUT, "> $median_zscores_file_path" or die "Can't write to median zscores export file: $!\n";
   open REPSOUT, "> $replicate_zscores_file_path" or die "Can't write to replicate zscores export file: $!\n";
@@ -3689,16 +3231,16 @@ sub configure_export {
     print REPSOUT "\n";
   }
   
-  my $link_for_median_zscores = $configures{'hostname'} . $configures{'configure_export_new_file_path'} . "median_zscores_export_file.txt";
-  my $link_for_replicate_zscores = $configures{'hostname'} . $configures{'configure_export_new_file_path'} . "replicate_zscores_export_file.txt";
+  my $link_for_median_zscores = $configures{'hostname'} . $configures{'configure_export_new_file_path'} . "median_drug_zscores_export_file_complete.txt";
+  my $link_for_replicate_zscores = $configures{'hostname'} . $configures{'configure_export_new_file_path'} . "replicate_drug_zscores_export_file_complete.txt";
   
   print "<a href=\"$link_for_median_zscores\">Download exported plate 11-12-13 median Z-score data </a></br>";
   print "<p></p>";
   print "<a href=\"$link_for_replicate_zscores\">Download exported plate 11-12-13 replicate Z-score data </a>";
   
-  ##
+  ############
   ## export pocscores - median/per replicate 
-  ##
+  ############
 
   # find the list of all summary files - blob
   my @all_poc_summary_files;
@@ -3726,7 +3268,7 @@ sub configure_export {
   open FILESTOPROC, "> $poc_summary_file_list_file" or die "Can't write file $poc_summary_file_list_file: $!\n";
   foreach my $poc_path (@all_poc_summary_files){
     my $poc_modified_path = $poc_path;
-    $poc_modified_path =~ s/\.txt$/_with_rep_pocscores.txt/;
+   # $poc_modified_path =~ s/\.txt$/_with_rep_pocscores.txt/;
    # if (! -e $poc_modified_path){
     print FILESTOPROC "$poc_path\n";
    # }
@@ -3747,7 +3289,7 @@ sub configure_export {
   my @poc_colname_sirna_info = ();  
   foreach my $poc_path (@all_poc_summary_files){
     my $poc_modified_path = $poc_path;
-    $poc_modified_path =~ s/\.txt$/_with_rep_pocscores.txt/;
+   # $poc_modified_path =~ s/\.txt$/_with_rep_pocscores.txt/;
     open SUMMARY, "< $poc_modified_path" or die "Can't read summary file $poc_modified_path: $!\n";
     my $poc_header = <SUMMARY>;
     chomp $poc_header;
@@ -3770,13 +3312,13 @@ sub configure_export {
       elsif($poc_col_names[$i] eq 'Concentration_pM' | $poc_col_names[$i] eq 'Concentration.pM.'){
         $poc_conc_col = $i;
       }
-      elsif($poc_col_names[$i] eq 'pocscore_rep1'){
+      elsif($poc_col_names[$i] eq 'normalized_r1_ch1'){
         $poc_rep1_col = $i;
       }
-      elsif($poc_col_names[$i] eq 'pocscore_rep2'){
+      elsif($poc_col_names[$i] eq 'normalized_r2_ch1'){
         $poc_rep2_col = $i;
       }
-      elsif($poc_col_names[$i] eq 'pocscore_rep3'){
+      elsif($poc_col_names[$i] eq 'normalized_r3_ch1'){
         $poc_rep3_col = $i;
       }
     }
@@ -3793,7 +3335,7 @@ sub configure_export {
     # summary_file_name + plate + pos + geneID/- rep
     my $poc_filename = $poc_modified_path;
     $poc_filename =~ s/^.*\///;
-    $poc_filename =~ s/_with_rep_pocscores.txt$//;
+   # $poc_filename =~ s/_with_rep_pocscores.txt$//;
 	push(@poc_rowname_filenames, $poc_filename); 
 	while(<SUMMARY>){
 	  my $poc_line = $_;
@@ -3818,8 +3360,8 @@ sub configure_export {
   # get array of each screen and array of each zscore*rep/median and write out
   # a table as was done for the configure_export sub previously
   
-  my $median_pocscores_file_path = $configures{'WebDocumentRoot'} . $configures{'configure_export_new_file_path'} . "median_pocscores_export_file.txt";
-  my $replicate_pocscores_file_path = $configures{'WebDocumentRoot'} . $configures{'configure_export_new_file_path'} . "replicate_pocscores_export_file.txt";
+  my $median_pocscores_file_path = $configures{'WebDocumentRoot'} . $configures{'configure_export_new_file_path'} . "median_pocscores_export_file_complete.txt";
+  my $replicate_pocscores_file_path = $configures{'WebDocumentRoot'} . $configures{'configure_export_new_file_path'} . "replicate_pocscores_export_file_complete.txt";
   
   open MEDOUT, "> $median_pocscores_file_path" or die "Can't write to median pocscores export file: $!\n";
   open REPSOUT, "> $replicate_pocscores_file_path" or die "Can't write to replicate pocscores export file: $!\n";
@@ -3884,13 +3426,42 @@ sub configure_export {
     print REPSOUT "\n";
   }
   
-  my $link_for_median_pocscores = $configures{'hostname'} . $configures{'configure_export_new_file_path'} . "median_pocscores_export_file.txt";
-  my $link_for_replicate_pocscores = $configures{'hostname'} . $configures{'configure_export_new_file_path'} . "replicate_pocscores_export_file.txt";
+  my $link_for_median_pocscores = $configures{'hostname'} . $configures{'configure_export_new_file_path'} . "median_pocscores_export_file_complete.txt";
+  my $link_for_replicate_pocscores = $configures{'hostname'} . $configures{'configure_export_new_file_path'} . "replicate_pocscores_export_file_complete.txt";
   
   print "<p></p>";
   print "<a href=\"$link_for_median_pocscores\">Download exported plate 11-12-13 median POC-score data </a></br>";
   print "<p></p>";
   print "<a href=\"$link_for_replicate_pocscores\">Download exported plate 11-12-13 replicate POC-score data </a>"; 
+  
+  my $collected_pocscores_dr_path = $configures{'WebDocumentRoot'} . $configures{'configure_export_new_file_path'};
+  my $collected_pocscores_dr_file_path = $configures{'WebDocumentRoot'} . $configures{'configure_export_new_file_path'} . "collected_pocscores_drugresponse_export_file.txt";
+  
+  my $dr_file_path;
+  open ALLDRFILES, "> $collected_pocscores_dr_file_path" or die "collected_pocscores_dr_file_path: $!\n";
+  print ALLDRFILES "screen\tdrug\tlayout\tsf80\tsf50\tsf20\tauc100\tslope\tslope_pval\teInf\tec50\tLOF_pval\tauc100_raw\n";
+  foreach my $fpath (@all_summary_files){
+    $dr_file_path = $fpath;
+    $dr_file_path =~ s/_zscores_summary.txt/_pocscores_drugresponse.txt/;
+    $dr_file_path =~ /([^\/]+)[\n\r]?$/;
+    my $dr_file_name = $1;
+    $dr_file_name =~ s/_pocscores_drugresponse.txt//;
+    open DRFILE, "< $dr_file_path" or die "Can't read drug response file $dr_file_path: $!\n";
+    while (<DRFILE>) {
+      if($_ =~ /drug/) {
+        next;
+      }
+      else {
+        print ALLDRFILES "$dr_file_name\t$_"; 
+      }
+    }
+    close DRFILE;  
+  }   
+  close ALLDRFILES;  
+  
+  ## script not working
+  
+ # `cd $collected_pocscores_dr_path && R --vanilla < $configures{'get_auc_sf_scores_script'}`;
   
   print "$page_footer";
   print $q -> end_html;
