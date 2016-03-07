@@ -812,7 +812,7 @@ sub add_new_screen {
   
   print "</p><p>Instrument:<br />";
   
-  my @instrument = ( "Please select", "1S10", "1C11" ); 
+  my @instrument = ( "Please select", "1S10", "1C11", "VictorX" ); 
   print $q -> popup_menu ( -name => 'instrument',
   					       -value => \@instrument,
   						   -default => 'Please select',
@@ -1347,15 +1347,7 @@ sub save_new_screen {
   
   my $screen_dir_name = $q -> param( "screen_dir_name" );
   my $screenDescription_filename;
-  
-  if ( $gene_name_if_isogenic == "Enter gene name" || $gene_name_if_isogenic == "" ) {
-    $gene_name_if_isogenic = "";
-  }
-  
- if ( $isogenic_mutant_description == "e.g. parental" || $isogenic_mutant_description == "" ) {
-    $isogenic_mutant_description = "";
-  }
- 
+
   $gene_name_if_isogenic =~ s/\s+//g; 
   $gene_name_if_isogenic =~ s/\//-/g;
    
@@ -1365,10 +1357,10 @@ sub save_new_screen {
   $method_of_isogenic_knockdown =~ s/\s+//g;
   $method_of_isogenic_knockdown =~ s/\//-/g;
   
-  if ( $collaborator == "Optional" || $collaborator == "" ) {
+  if ( $collaborator eq "Optional" || $collaborator eq "" ) {
     $collaborator = "NA";
   }
-  if ( $dosing_regime == "e.g. 24 hrs after transfection" || $dosing_regime == "" ) {
+  if ( $dosing_regime eq "e.g. 24 hrs after transfection" || $dosing_regime eq "" ) {
     $dosing_regime = "NA";
   }
   
@@ -1376,7 +1368,7 @@ sub save_new_screen {
   $compound =~ s/\//-/g;
   $compound = uc($compound);
   
-  if ( $compound_concentration == "e.g. 100 ng" || $compound_concentration == "" ) {
+  if ( $compound_concentration eq "e.g. 100 ng" || $compound_concentration eq "" ) {
     $compound_concentration = "";
   }
 
@@ -1534,7 +1526,7 @@ sub save_new_screen {
     my $descripFile = $file_path."/".$screen_dir_name."_Description.txt";
     open NOTES, "> $descripFile" 
       or die "Cannot write notes to $descripFile:$!\n";
-    if (($notes == "write notes for Description.txt") || ($notes == "")){
+    if (($notes eq "write notes for Description.txt") || ($notes eq "")){
       $notes = "$screen_dir_name\n$operator\t$date_of_run";
     }
     print NOTES $notes;
@@ -1705,8 +1697,8 @@ sub save_new_screen {
   }
   else {
     $is_isogenic_screen = "NO";
-    $gene_name_if_isogenic = "NA";
-    $isogenic_mutant_description = "NA";
+    $gene_name_if_isogenic = "";
+    $isogenic_mutant_description = "";
     $method_of_isogenic_knockdown = "NA";
   }
   
@@ -1805,7 +1797,7 @@ sub save_new_screen {
 			  Platelist_file_path_Platelist_file_path_ID,
 			  Compound_library_Compound_library_ID 
 			  ) 
-			  SELECT 
+			  SELECT
 				'$cell_line_name',
 				'$screen_dir_name',
 				'$date_of_run', 
@@ -1838,10 +1830,10 @@ sub save_new_screen {
 				( SELECT Instrument_used_ID FROM Instrument_used WHERE Instrument_name = '$instrument' ),
 				( SELECT Tissue_type_ID FROM Tissue_type WHERE Tissue_of_origin = '$tissue_type' ), 
 				( SELECT Compound_library_file_path_ID FROM Compound_library_file_path WHERE Compound_library_file_location = '$templib_file_path' ),
-				( SELECT Plateconf_file_path_ID FROM Plateconf_file_path WHERE Plateconf_file_location = '$plateconf_file_path' ),
-				( SELECT Platelist_file_path_ID FROM Platelist_file_path WHERE Platelist_file_location = '$platelist_file_path' ),
-				( SELECT Compound_library_ID FROM Compound_library WHERE Compound_library_name = '$templib' )";
-
+				( SELECT Plateconf_file_path_ID FROM Plateconf_file_path WHERE Plateconf_file_location = '$plateconf_file_path' AND Plateconf_file_path_ID > '11' ),
+				( SELECT Platelist_file_path_ID FROM Platelist_file_path WHERE Platelist_file_location = '$platelist_file_path' AND Platelist_file_path_ID > '9' ),
+				( SELECT Compound_library_ID FROM Compound_library WHERE Compound_library_name = '$templib' )";  
+ 
   $query_handle = $dbh->prepare( $query );
    					    #or die "Cannot prepare: " . $dbh -> errstr();
   $query_handle -> execute(); 
@@ -2757,10 +2749,11 @@ sub save_new_uploaded_templib_file {
   	#				   -value => 'File uploaded successfully! It can now be selected for analysis from the drop down menu.' );
 } #end of save_new_uploaded_templib_file subroutine
   
-
 # ==================================
 # Subroutine for showing all screens
 # ==================================
+						  
+sub show_all_screens {
 
 my $show_all_screens_page_header = "<html>
 				  				    <head>
@@ -2768,21 +2761,21 @@ my $show_all_screens_page_header = "<html>
 									<title>GFT DRUG database</title>
 									<link rel=\"stylesheet\" type=\"text/css\" media=\"screen\"  href=\"/css/rnaidb.css\" />
 									<meta name=\"viewport\" content=\"width=1000, initial-scale=0.5, minimum-scale=0.45\" />
-								    <script src=\"jquery-1.4.1.min.js\"></script>
-								    <script>
-								      $(document).ready(function() {
-								      $(\"#searchInput\").keyup(function(){
+								    <script src=\"http://code.jquery.com/jquery-1.4.1.min.js\"></script>
+								    <script type=\"text/javascript\">
+								      \$(document).ready(function() {
+								      \$(\"#searchInput\").keyup(function(){
 								   //hide all the rows
-								      $(\"#fbody\").find(\"tr\").hide();
-								      
+								      \$(\"#fbody\").find(\"tr\").hide();   
 								  //split the current value of searchInput
 								      var data = this.value.split(\" \");
 								 //create a jquery object of the rows
-								    var jo = $(\"#fbody\").find(\"tr\");
-		   
-							     //Recusively filter the jquery object to get results.
-								    $.each(data, function(i, v){
-								    jo = jo.filter(\"*:contains(\'\"+v+\"\')\");
+								    var jo = \$(\"#fbody\").find(\"tr\");
+		   						//Recusively filter the jquery object to get results.
+								    \$.each(data, function(i, v){
+								      jo = jo.filter(function() {
+            						    return \$(this).text().toLowerCase().indexOf(v.toLowerCase()) > -1;
+          							  });
 								    });
 							     //show the rows that match.
 								   jo.show();
@@ -2790,8 +2783,8 @@ my $show_all_screens_page_header = "<html>
    
 							       }).focus(function(){
 							       this.value=\"\";
-							       $(this).css({\"color\":\"black\"});
-							       $(this).unbind(\'focus\');
+							       \$(this).css({\"color\":\"black\"});
+							       \$(this).unbind('focus');
 							     }).css({\"color\":\"#C0C0C0\"});  
 						      });
 						      </script>
@@ -2804,27 +2797,10 @@ my $show_all_screens_page_header = "<html>
 									<a href=\"/cgi-bin/$script_name?show_all_screens=1\">Show all screens</a>\&nbsp;\&nbsp;
 									<a href=\"/cgi-bin/$script_name?configure_export=1\">Configure export</a>\&nbsp;\&nbsp;
 									</p>
-							  <input id=\"searchInput\" value=\"Type To Filter\"><br/>
-								<table>
-								  <thead><tr>
-								    <th>Cell line</th>
-								    <th>Tissue</th>
-									<th>Date</th>
-									<th>Operator</th>
-									<th>Compound*Conc</th>
-									<th>Isogenic gene*Description</th>
-									<th>Link to cellHTS2 analysis Z-score report</th>
-									<th>Link to cellHTS2 analysis POC-score report</th>
-									<th>View/Download QC plots</th>
-									<th>View/Download DRC plots</th>
-									<th>View/Download DRC file</th>
-									<th>View/Download rep Z-scores</th>
-									<th>View/Download rep POC-scores</th>
-									<th>View/Download screen info</th>
-									<th>Screen info</th>
-									<th>Remove_screens</th>
-								  </tr></thead>
-								<tbody id=\"fbody\">";
+									<h1>Available screens:</h1>
+									Filter screens:
+							  <input id=\"searchInput\" value=\"Type keywords\"><br/>";
+
 				  
 my $show_all_screens_page_footer = "<!-- end Box -->
 								  </tbody>
@@ -2832,22 +2808,21 @@ my $show_all_screens_page_footer = "<!-- end Box -->
 							  </div> <!-- end Main --></div>
 							</body>
 						  </html>";
-						  
-sub show_all_screens { 
+ 
   print $q -> header ( "text/html" );
-  print "$page_header";
-  print "<h1>Available screens:</h1>";
+  print "$show_all_screens_page_header";
+  print "<p></p><p></p>";
+  print $q -> start_multipart_form ( -method => "POST",
+  									 -name => "showAllScreens"); 
   
   my $check_screens = $q -> param ( "check_screens" );
   my $remove_screens = $q -> param ( "Remove_screens" );
- 
- print "<table border=\"1\" style=\"width:100%\">";
- ####print "<table border=\"1\" style=\"border-collapse: collapse\">";
  
   my $query = "SELECT
   			  r.QC,
   			  r.Cell_line,
   			  t.Tissue_of_origin,
+  			  r.Compound_library_name,
 			  r.Date_of_run,
 			  r.Operator,
 			  r.Compound,
@@ -2874,8 +2849,15 @@ sub show_all_screens {
    					   #or die "Cannot prepare: " . $dbh -> errstr();
   $query_handle -> execute();
    # or die "SQL Error: ".$query_handle -> errstr();
+
+
+								 
+			
+# print "<table border=\"1\" style=\"width:100%\">";
+ ####print "<table border=\"1\" style=\"border-collapse: collapse\">";
+
    
-  print "<td align=left valign=top>\n";
+  print "<table border=\"1\" style=\"width:100%\"><thead><tr>\n";
   
   print "<th align=left>";
   print "Cell line";
@@ -2883,6 +2865,10 @@ sub show_all_screens {
   
   print "<th align=left>";
   print "Tissue";
+  print "</th>";
+  
+  print "<th align=left>";
+  print "Library";
   print "</th>";
   
   print "<th align=left>";
@@ -2936,15 +2922,13 @@ sub show_all_screens {
   print "<th align=left>";
   print "Remove screens";
   print "</th>";
-  
-  print "</td>";
+  print " </tr></thead><tbody id=\"fbody\">";  
+
  
   my $row;
   while ( my @row = $query_handle -> fetchrow_array ) {
   
     print "<tr>";
-    
-    print "<td align=left valign=top>\n";
     
     print "<td>";
     print "$row[1]";
@@ -2963,61 +2947,67 @@ sub show_all_screens {
     print "</td>";
     
     print "<td>";
-    print "$row[5]*$row[6]";
+    print "$row[5]";
+    print "</td>";
+    
+    print "<td>";
+    print "$row[6]*$row[7]";
     print "</td>"; 
     
     print "<td>";
-    print "$row[7]*$row[8]";
+    print "$row[8]*$row[9]";
     print "</td>"; 
    
     print "<td>";
-    print "<a href=\"$row[9]\" >Z-score report</a>";
+    print "<a href=\"$row[10]\" >Z-score report</a>";
     print "</td>"; 
     
     print "<td>";
-    print "<a href=\"$row[10]\" >POC-score report</a>";
+    print "<a href=\"$row[11]\" >POC-score report</a>";
     print "</td>"; 
     
     print "<td>";
-    print "<a href=" . $configures{'hostname'} . "cgi-bin/$script_name?show_qc=1\&screen_dir_name=$row[17]\&plate_conf=$row[11]\">QC plots</a>";
+    print "<a href=" . $configures{'hostname'} . "cgi-bin/$script_name?show_qc=1\&screen_dir_name=$row[18]\&plate_conf=$row[12]\">QC plots</a>";
     print "</td>"; 
     
     print "<td>";
-    print "<a href=\"$row[12]\" >DRC plots</a>";
+    print "<a href=\"$row[13]\" >DRC plots</a>";
     print "</td>"; 
     
     print "<td>";
-    print "<a href=\"$row[13]\" >AUC/SF scores</a>";
+    print "<a href=\"$row[14]\" >AUC/SF scores</a>";
     print "</td>"; 
     
     print "<td>";
-    print "<a href=\"$row[14]\" >Rep Z-scores</a>";
+    print "<a href=\"$row[15]\" >Rep Z-scores</a>";
     print "</td>";
     
     print "<td>";
-    print "<a href=\"$row[15]\" >Rep POC-scores</a>";
+    print "<a href=\"$row[16]\" >Rep POC-scores</a>";
     print "</td>";
 
     print "<td>";
-    print "<a href=\"$row[16]\" >Screen details</a>";
+    print "<a href=\"$row[17]\" >Screen details</a>";
     print "</td>";
  
     print "<td>";
     print $q -> checkbox( -name=>'check_screens',
     					  -checked=>0,
-   					      -value=>'ON',
+   	 				      -value=>'ON',
     					  -label=>'',
-    					  -id=>$row[18]);
+    					  -id=>$row[19]);
+#    if ($check_screens eq 'ON') {
+#  	  $query = "UPDATE Drug_screen_info set QC = 'F' WHERE Drug_screen_info_ID = $row[18]";
+#	  $query_handle = $dbh -> prepare ( $query );
+#	  $query_handle->execute();
+#    } 						  
+    
     print "</td>"; 
-
-    print "</td>";
     print "</tr>";
 
   } #end of while loop
 
   print "</table>";
-  
-  print "<td>";
   
   print "<p></p><p></p>";
 
@@ -3025,9 +3015,9 @@ sub show_all_screens {
  # print "<input type=\"submit\" id=\"Remove_screens\" value=\"Remove_screens\" name=\"Remove_screens\"/>";
  # print "</b>";
   
-  print "</td>";  
+  print $q -> end_multipart_form(); 
 
-  print "$page_footer";
+  print "$show_all_screens_page_footer";
   print $q -> end_html;
 
 } #end of show_all_screens subroutine
@@ -3275,8 +3265,6 @@ sub configure_export {
   }
   close FILESTOPROC;
   
-  my $dir = $configures{'WebDocumentRoot'}.$configures{'configure_export_new_file_path'};
-
   `cd $dir && R --vanilla < $configures{'get_replicate_zscores_script'}`;
   
   # when all summary files are processed, read each one and create a hash for all Z-scores

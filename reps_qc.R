@@ -14,17 +14,24 @@ Zscreen_qc <- function(
 
   summary_file <- read.table(file= summary, sep="\t", header=TRUE) 				
 
-	
-  sample_summary_data<-subset(summary_file, subset=(Function!=""))
+  #sample_summary_data<-subset(summary_file, subset=(Function!=""))
+  sample_summary_data<-summary_file[which(summary_file$wellAnno == "sample"),]
   rep1<-sample_summary_data$normalized_r1_ch1
   rep2<-sample_summary_data$normalized_r2_ch1
   rep3<-sample_summary_data$normalized_r3_ch1
 
+
+  # debug
+  write.table(rep1, file="rep1_test.txt")
+
   r12.cor <- cor(rep1,rep2,method="pearson",use="pairwise.complete.obs")
+ #r12.cor <- cor(sample_summary_data$normalized_r1_ch1,sample_summary_data$normalized_r2_ch1,method="pearson",use="pairwise.complete.obs")
 
   r13.cor <- cor(rep1,rep3,method="pearson",use="pairwise.complete.obs")
+ #r13.cor <- cor(sample_summary_data$normalized_r1_ch1,sample_summary_data$normalized_r3_ch1,method="pearson",use="pairwise.complete.obs")
 
   r23.cor <- cor(rep2,rep3,method="pearson",use="pairwise.complete.obs")
+ #r23.cor <- cor(sample_summary_data$normalized_r2_ch1,sample_summary_data$normalized_r3_ch1,method="pearson",use="pairwise.complete.obs")
 
   min.cor <- min(r12.cor, r13.cor, r23.cor)
 

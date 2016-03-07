@@ -12,9 +12,9 @@ xls2platelist<-function(xls, datapath){
 		{
 			temp<-mydata[mydata$Plate==plate,c(1,3,6)]
 			screen_plate_number <- screen_plate_number + 1
-    		filename<-paste(screen_name, "_P",screen_plate_number,".txt", sep="")
-    		#######filename<-paste("P",screen_plate_number,".txt", sep="")
-			write.table(temp, file=filename, col.names=FALSE, row.names=FALSE, quote=FALSE, sep="\t")
+    		######filename<-paste(screen_name, "_P",screen_plate_number,".txt", sep="")
+    		filename<-paste("P",screen_plate_number,".txt", sep="")
+			write.table(temp, file=filename, na="", col.names=FALSE, row.names=FALSE, quote=FALSE, sep="\t")
 		}
 	}
 }
