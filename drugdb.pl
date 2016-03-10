@@ -588,7 +588,7 @@ sub add_new_screen {
    
   ## get the existing platelist filenames from the database and display them in the popup menu ##
   
-  $query = "SELECT Platelist_file_location FROM Platelist_file_path WHERE Platelist_file_path_ID > '9'";
+  $query = "SELECT Platelist_file_location FROM Platelist_file_path WHERE Platelist_file_path_ID > '18'";
   $query_handle = $dbh -> prepare ( $query );
      				#or die "Cannot prepare: " . $dbh -> errstr();
   $query_handle->execute();
@@ -680,7 +680,7 @@ sub add_new_screen {
   
   ## get the existing plateconf filenames from the database and display them in the popup menu ##
   
-  $query = "SELECT Plateconf_file_location FROM Plateconf_file_path WHERE Plateconf_file_path_ID > '11'";
+  $query = "SELECT Plateconf_file_location FROM Plateconf_file_path WHERE Plateconf_file_path_ID > '37'";
   $query_handle = $dbh -> prepare( $query );
     				   #or die "Cannot prepare: " . $dbh -> errstr();
   $query_handle -> execute();
@@ -1830,8 +1830,8 @@ sub save_new_screen {
 				( SELECT Instrument_used_ID FROM Instrument_used WHERE Instrument_name = '$instrument' ),
 				( SELECT Tissue_type_ID FROM Tissue_type WHERE Tissue_of_origin = '$tissue_type' ), 
 				( SELECT Compound_library_file_path_ID FROM Compound_library_file_path WHERE Compound_library_file_location = '$templib_file_path' ),
-				( SELECT Plateconf_file_path_ID FROM Plateconf_file_path WHERE Plateconf_file_location = '$plateconf_file_path' AND Plateconf_file_path_ID > '11' ),
-				( SELECT Platelist_file_path_ID FROM Platelist_file_path WHERE Platelist_file_location = '$platelist_file_path' AND Platelist_file_path_ID > '9' ),
+				( SELECT Plateconf_file_path_ID FROM Plateconf_file_path WHERE Plateconf_file_location = '$plateconf_file_path' AND Plateconf_file_path_ID > '37' ),
+				( SELECT Platelist_file_path_ID FROM Platelist_file_path WHERE Platelist_file_location = '$platelist_file_path' AND Platelist_file_path_ID > '18' ),
 				( SELECT Compound_library_ID FROM Compound_library WHERE Compound_library_name = '$templib' )";  
  
   $query_handle = $dbh->prepare( $query );
@@ -2011,7 +2011,7 @@ sub save_new_screen {
   print "<p>";
   
   print "<p>";
-  print "<a href=" . $configures{'hostname'} . "cgi-bin/$script_name?show_qc=1\&screen_dir_name=$screen_dir_name\&plate_conf=$plateconf\">QC</a>";
+  print "<a href=" . $configures{'hostname'} . "cgi-bin/$script_name?show_qc=1\&screen_dir_name=$screen_dir_name\&plate_conf=$plateconf>QC</a>";
   print "</p>"; 
   
   print "<p>";
@@ -2771,11 +2771,10 @@ my $show_all_screens_page_header = "<html>
 								      var data = this.value.split(\" \");
 								 //create a jquery object of the rows
 								    var jo = \$(\"#fbody\").find(\"tr\");
-		   						//Recusively filter the jquery object to get results.
+		   
+							     //Recusively filter the jquery object to get results.
 								    \$.each(data, function(i, v){
-								      jo = jo.filter(function() {
-            						    return \$(this).text().toLowerCase().indexOf(v.toLowerCase()) > -1;
-          							  });
+								    jo = jo.filter(\"*:contains('\"+v+\"')\");
 								    });
 							     //show the rows that match.
 								   jo.show();
@@ -2798,8 +2797,10 @@ my $show_all_screens_page_header = "<html>
 									<a href=\"/cgi-bin/$script_name?configure_export=1\">Configure export</a>\&nbsp;\&nbsp;
 									</p>
 									<h1>Available screens:</h1>
+									<p></p><p></p>
 									Filter screens:
-							  <input id=\"searchInput\" value=\"Type keywords\"><br/>";
+							  <input id=\"searchInput\" value=\"Enter keywords\"><br/><p></p><p></p>";
+							  
 
 				  
 my $show_all_screens_page_footer = "<!-- end Box -->
@@ -2811,7 +2812,6 @@ my $show_all_screens_page_footer = "<!-- end Box -->
  
   print $q -> header ( "text/html" );
   print "$show_all_screens_page_header";
-  print "<p></p><p></p>";
   print $q -> start_multipart_form ( -method => "POST",
   									 -name => "showAllScreens"); 
   
@@ -2967,7 +2967,7 @@ my $show_all_screens_page_footer = "<!-- end Box -->
     print "</td>"; 
     
     print "<td>";
-    print "<a href=" . $configures{'hostname'} . "cgi-bin/$script_name?show_qc=1\&screen_dir_name=$row[18]\&plate_conf=$row[12]\">QC plots</a>";
+    print "<a href=" . $configures{'hostname'} . "cgi-bin/$script_name?show_qc=1\&screen_dir_name=$row[18]\&plate_conf=$row[12]>QC plots</a>";
     print "</td>"; 
     
     print "<td>";
