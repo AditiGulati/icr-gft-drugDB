@@ -2774,8 +2774,10 @@ my $show_all_screens_page_header = "<html>
 		   
 							     //Recusively filter the jquery object to get results.
 								    \$.each(data, function(i, v){
-								    jo = jo.filter(\"*:contains('\"+v+\"')\");
-								    });
+								   jo = jo.filter(function(){
+									 return (this.innerHTML.toUpperCase().indexOf(v.toUpperCase())!=-1);
+								     }); 
+								  });
 							     //show the rows that match.
 								   jo.show();
 							     //Removes the placeholder text  
