@@ -3239,7 +3239,9 @@ sub configure_export {
   
   $query = "SELECT
 			  r.Summary_pocscores_file_path FROM
-			  Drug_screen_info r";
+			  Drug_screen_info r WHERE
+			  r.QC = 'P' AND
+			  Compound_library_name != 'FulvestrantAnalogues_HP'";
 
   $query_handle = $dbh -> prepare ( $query );
    					   #or die "Cannot prepare: " . $dbh -> errstr();

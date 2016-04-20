@@ -34,7 +34,7 @@ drcResult<- function(
   mydrugs<-unique(scores$GeneID)
   mydrugs<-na.omit(mydrugs)
   mydrugs<-sort(mydrugs)
-  mydrugs <- mydrugs[ mydrugs != "EMPTY" & mydrugs != "POS" & mydrugs != "NEG" & mydrugs != "empty" & mydrugs != "pos" & mydrugs != "neg" & mydrugs != "DMSO" & mydrugs != "dmso" ]
+  mydrugs <- mydrugs[ mydrugs != "EMPTY" & mydrugs != "POS" & mydrugs != "NEG" & mydrugs != "empty" & mydrugs != "pos" & mydrugs != "neg" & mydrugs != "DMSO" & mydrugs != "dmso" & mydrugs != "NEG2" & mydrugs != "neg2" ]
   
   report=data.frame(
     drug=character(), 
