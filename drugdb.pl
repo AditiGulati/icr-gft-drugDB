@@ -3041,7 +3041,9 @@ sub configure_export {
   
   my $query = "SELECT
 			  r.Summary_file_path FROM
-			  Drug_screen_info r";
+			  Drug_screen_info r WHERE
+			  r.QC = 'P' AND
+			  Compound_library_name != 'FulvestrantAnalogues_HP'";
 
   my $query_handle = $dbh -> prepare ( $query );
    					   #or die "Cannot prepare: " . $dbh -> errstr();
