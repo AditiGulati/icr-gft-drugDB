@@ -52,74 +52,114 @@ Zscreen_qc <- function(
   ## scatter plots
   ##
   	
+  numberOfPlates = levels(as.factor(sample_summary_data$plate))
+
+  plate_cols <- NULL
+
+  for (plate in numberOfPlates) {
+    plate_cols = rainbow(length(numberOfPlates), s=1, v=1, alpha=0.5)
+    names(plate_cols) <- numberOfPlates
+  }
+ 	
   ## scatter plot showing correlation between rep1 and rep2
 
   qc_plot_file_1 <- paste(datapath, qc_plot_1 , sep="")
-	
-  min_rep12 <- min(c(rep1,rep2),na.rm=TRUE)
-  #max_rep12 <- max(c(rep1,rep2),na.rm=TRUE)
 
-  png(file=qc_plot_file_1, width=300, height=300)
-
+  png(file=qc_plot_file_1, width=400, height=400)
+  
   plot(
-    rep1, 
- 	rep2,
+    NULL,
+    NULL,
+    xlim=c(min(rep1,na.rm=TRUE),max(rep1,na.rm=TRUE)),
+    ylim=c(min(rep2,na.rm=TRUE),max(rep2,na.rm=TRUE)),
     main=paste("Rep1 vs Rep2 (r=",round(r12.cor, 2),")", sep=""),
     xlab="Normalised scores for Rep1",
-  	ylab="Normalised scores for Rep2",
-  	#xlim=c(min_rep12,max_rep12),
-  	#ylim=c(min_rep12,max_rep12),
-  	cex=1.5,
-	pch=19,
-	col=rgb(0,0,0,0.25)
-  )	
+    ylab="Normalised scores for Rep2",
+    cex=1.5
+  )
+  
+  for (plate in numberOfPlates) {
+    points(
+      rep1[which(sample_summary_data$plate == plate)], 
+      rep2[which(sample_summary_data$plate == plate)],
+      cex=1.5,
+      pch=19,
+      col=plate_cols[which(names(plate_cols) == plate)]
+    )	
+  }
+  legend( 
+    x="bottomright", 
+    legend=paste("Plate",names(plate_cols), sep=""),
+    col=plate_cols, lwd=2, lty=c(1,2), 
+    pch=19
+  )
   dev.off()
-
 
   ## scatter plot showing correlation between rep2 and rep3
 
   qc_plot_file_2 <- paste(datapath, qc_plot_2, sep="")
-	
-  #min_rep23 <- min(c(rep2,rep3),na.rm=TRUE)
-  #max_rep23 <- max(c(rep2,rep3),na.rm=TRUE)
 
-  png(file=qc_plot_file_2, width=300, height=300)
+  png(file=qc_plot_file_2, width=400, height=400)
 
   plot(
-    rep2, 
-	rep3,
+    NULL,
+    NULL,
+    xlim=c(min(rep2,na.rm=TRUE),max(rep2,na.rm=TRUE)),
+    ylim=c(min(rep3,na.rm=TRUE),max(rep3,na.rm=TRUE)),
     main=paste("Rep2 vs Rep3 (r=",round(r23.cor, 2),")", sep=""),
     xlab="Normalised scores for Rep2",
     ylab="Normalised scores for Rep3",
-    #xlim=c(min_rep23,max_rep23),
-    #ylim=c(min_rep23,max_rep23),
-    cex=1.5,
-    pch=19,
-	col=rgb(0,0,0,0.25)
-  )	
+    cex=1.5
+  )
+  
+  for (plate in numberOfPlates) {
+    points(
+      rep2[which(sample_summary_data$plate == plate)], 
+      rep3[which(sample_summary_data$plate == plate)],
+      cex=1.5,
+      pch=19,
+      col=plate_cols[which(names(plate_cols) == plate)]
+    )	
+  }
+  legend( 
+    x="bottomright", 
+    legend=paste("Plate",names(plate_cols), sep=""),
+    col=plate_cols, lwd=2, lty=c(1,2), 
+    pch=19
+    )
   dev.off()
-
 
   ## scatter plot showing correlation between rep1 and rep3
 
   qc_plot_file_3 <- paste(datapath, qc_plot_3, sep="")
 
-  #min_rep13 <- min(c(rep1,rep3),na.rm=TRUE)
-  #max_rep13 <- max(c(rep1,rep3),na.rm=TRUE)
+  png(file=qc_plot_file_3, width=400, height=400)
 
-  png(file=qc_plot_file_3, width=300, height=300)
-
-  plot(
-    rep1, 
-	rep3,
-	main=paste("Rep1 vs Rep3 (r=",round(r13.cor, 2),")", sep=""),
-	xlab="Normalised scores for Rep1",
-	ylab="Normalised scores for Rep3",
-	#xlim=c(min_rep13,max_rep13),
-  	#ylim=c(min_rep13,max_rep13),
-	cex=1.5,
-	pch=19,
-	col=rgb(0,0,0,0.25)
-  )	
-  dev.off()
+    plot(
+      NULL,
+      NULL,
+      xlim=c(min(rep1,na.rm=TRUE),max(rep1,na.rm=TRUE)),
+      ylim=c(min(rep3,na.rm=TRUE),max(rep3,na.rm=TRUE)),
+      main=paste("Rep1 vs Rep3 (r=",round(r13.cor, 2),")", sep=""),
+      xlab="Normalised scores for Rep1",
+      ylab="Normalised scores for Rep3",
+      cex=1.5
+    )
+  
+   for (plate in numberOfPlates) {
+      points(
+        rep1[which(sample_summary_data$plate == plate)], 
+        rep3[which(sample_summary_data$plate == plate)],
+        cex=1.5,
+        pch=19,
+        col=plate_cols[which(names(plate_cols) == plate)]
+      )	
+    }
+    legend( 
+      x="bottomright", 
+      legend=paste("Plate",names(plate_cols), sep=""),
+      col=plate_cols, lwd=2, lty=c(1,2), 
+      pch=19
+    )
+    dev.off()
 }
