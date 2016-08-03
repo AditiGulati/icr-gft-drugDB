@@ -34,7 +34,8 @@ drcResult<- function(
   mydrugs<-unique(scores$GeneID)
   mydrugs<-na.omit(mydrugs)
   mydrugs<-sort(mydrugs)
-  mydrugs <- mydrugs[ mydrugs != "EMPTY" & mydrugs != "POS" & mydrugs != "NEG" & mydrugs != "empty" & mydrugs != "pos" & mydrugs != "neg" & mydrugs != "DMSO" & mydrugs != "dmso" & mydrugs != "NEG2" & mydrugs != "neg2" ]
+  mydrugs<-toupper(mydrugs)
+  mydrugs <- mydrugs[ mydrugs != "EMPTY" & mydrugs != "POS" & mydrugs != "NEG" & mydrugs != "DMSO" & mydrugs != "NEG2" & mydrugs != "ACTINOMYCIN" ]
   
   report=data.frame(
     drug=character(), 
@@ -181,7 +182,7 @@ drcResult<- function(
   if(is.na(auc100_actual)){
     auc100 = NA
   }else{
-    auc100=auc100_actual/3.31
+    auc100=auc100_actual/(max(log10(mydata$dosage)) - min(log10(mydata$dosage)))
   }
   if(auc100 > 1){
     auc100 = 1    
