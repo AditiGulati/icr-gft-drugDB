@@ -25,6 +25,7 @@ for(z_summaryFile in 1:nrow(z_summaryFiles)) {
   compound <- toupper(compound)
   z_summary <- cbind(z_summary, compound)
   drugs <- as.character(z_summary$compound) 
+  drugs <- toupper(drugs)
   summary_with_z <- NULL
   summary_with_z <- cbind(
     z_summary, 

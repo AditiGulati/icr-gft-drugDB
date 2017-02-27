@@ -7,20 +7,30 @@ zScreen <- function(
   path, 
   posControls = "pos",
   negControls = "neg",
-  description = "Description.txt",
+  descripFile = "Description.txt",
   compoundlibrary = "Compoundlibrary_p11_p12.txt",
   reportHTML = TRUE,
   plateconf = "Plateconf.txt",
   platelist = "Platelist.txt",
   zscoreName="zscore.txt",
   summaryName="zscore_summary.txt",
-  reportdirName="reportdir_z"
+  reportdirName="reportdir_z",
+  screenlog="Screenlog.txt" 
 ){
   
   require(cellHTS2)
   x<-readPlateList(platelist, name=name, path=path)
-  x<-configure(x, description, plateconf, path=path)
-
+  #	configure
+  cat("-----",name,"------ Z score\n")
+  # check if we have a screenlog 
+  if (file.exists( paste(path,screenlog,sep="") )){
+	cat("Screenlog found.\n")
+	x<-configure(x, descripFile=descripFile, confFile=plateconf, logFile=screenlog, path=path);
+  } else{
+	cat("No Screenlog found. Proceeding without.\n")
+	x<-configure(x, descripFile=descripFile, confFile=plateconf, path=path);
+  }
+  
   # for poc, switch controls
   # since CELLHTS2 calculates percent of positive control
   #posControls<-tolower(posControls)
