@@ -238,6 +238,9 @@ elsif ( $q -> param ( "configure_export" )) {
 elsif ( $q -> param ( "show_qc" )) {
   &show_qc ( $q );
 }
+elsif ( $q -> param ( "save_qc_status" )) {
+  &save_qc_status ( $q );
+}
 elsif ( $q -> param ( "run_export" )) {
   &run_export ( $q );
 }
@@ -1853,7 +1856,7 @@ sub save_new_screen {
 				'$drug_screen_link_to_rep_pocscores',
 				'$drug_screen_link_to_metadata',
 				'NA',
-				'',
+				'-TBC',
 				'$summary_zscores_file_complete',
 				'$summary_file_complete',
 				'$notes', 
@@ -3108,9 +3111,9 @@ sub configure_export {
   my @all_summary_files;
   
   my $query = "SELECT
-			  r.Summary_file_path FROM
-			  Drug_screen_info r WHERE
-			  Drug_screen_info_ID > '3807'";
+			  Summary_file_path FROM
+			  Drug_screen_info WHERE
+			  Compound_library_name like '%p14%'";
 
   my $query_handle = $dbh -> prepare ( $query );
    					   #or die "Cannot prepare: " . $dbh -> errstr();
@@ -3123,7 +3126,7 @@ sub configure_export {
   
   # write the list of cleaned up paths to a file that can be read by R to
   # find the summary files to process
-  my $summary_file_list_file = $configures{'WebDocumentRoot'} . $configures{'configure_export_new_file_path'} . "z_summary_file_list_p10.txt";
+  my $summary_file_list_file = $configures{'WebDocumentRoot'} . $configures{'configure_export_new_file_path'} . "z_summary_file_list_p-14.txt";
   open FILESTOPROC, "> $summary_file_list_file" or die "Can't write file $summary_file_list_file: $!\n";
   foreach my $path (@all_summary_files){
     my $modified_path = $path;
@@ -3227,8 +3230,8 @@ sub configure_export {
   # get array of each screen and array of each zscore*rep/median and write out
   # a table as was done for the configure_export sub previously
   
-  my $median_zscores_file_path = $configures{'WebDocumentRoot'} . $configures{'configure_export_new_file_path'} . "median_drug_zscores_export_file_complete_p10.txt";
-  my $replicate_zscores_file_path = $configures{'WebDocumentRoot'} . $configures{'configure_export_new_file_path'} . "replicate_drug_zscores_export_file_complete_p10.txt";
+  my $median_zscores_file_path = $configures{'WebDocumentRoot'} . $configures{'configure_export_new_file_path'} . "median_drug_zscores_export_file_complete_p-14.txt";
+  my $replicate_zscores_file_path = $configures{'WebDocumentRoot'} . $configures{'configure_export_new_file_path'} . "replicate_drug_zscores_export_file_complete_p-14.txt";
   
   open MEDOUT, "> $median_zscores_file_path" or die "Can't write to median zscores export file: $!\n";
   open REPSOUT, "> $replicate_zscores_file_path" or die "Can't write to replicate zscores export file: $!\n";
@@ -3293,12 +3296,12 @@ sub configure_export {
     print REPSOUT "\n";
   }
   
-  my $link_for_median_zscores = $configures{'hostname'} . $configures{'configure_export_new_file_path'} . "median_drug_zscores_export_file_complete_p10.txt";
-  my $link_for_replicate_zscores = $configures{'hostname'} . $configures{'configure_export_new_file_path'} . "replicate_drug_zscores_export_file_complete_p10.txt";
+  my $link_for_median_zscores = $configures{'hostname'} . $configures{'configure_export_new_file_path'} . "median_drug_zscores_export_file_complete_p-14.txt";
+  my $link_for_replicate_zscores = $configures{'hostname'} . $configures{'configure_export_new_file_path'} . "replicate_drug_zscores_export_file_complete_p-14.txt";
   
-  print "<a href=\"$link_for_median_zscores\">Download exported plate 11-12-13 median Z-score data </a></br>";
+  print "<a href=\"$link_for_median_zscores\">Download exported plate 11-12-13-14 median Z-score data </a></br>";
   print "<p></p>";
-  print "<a href=\"$link_for_replicate_zscores\">Download exported plate 11-12-13 replicate Z-score data </a>";
+  print "<a href=\"$link_for_replicate_zscores\">Download exported plate 11-12-13-14 replicate Z-score data </a>";
   
   ############
   ## export pocscores - median/per replicate 
@@ -3308,9 +3311,9 @@ sub configure_export {
   my @all_poc_summary_files;
   
   $query = "SELECT
-			  r.Summary_pocscores_file_path FROM
-			  Drug_screen_info r WHERE
-			  Drug_screen_info_ID > '3807'";
+			  Summary_pocscores_file_path FROM
+			  Drug_screen_info WHERE
+			  Compound_library_name like '%p14%'";
 
   $query_handle = $dbh -> prepare ( $query );
    					   #or die "Cannot prepare: " . $dbh -> errstr();
@@ -3327,7 +3330,7 @@ sub configure_export {
   
   # write the list of cleaned up paths to a file that can be read by R to
   # find the summary files to process
-  my $poc_summary_file_list_file = $configures{'WebDocumentRoot'} . $configures{'configure_export_new_file_path'} . "poc_summary_file_list_p10.txt";
+  my $poc_summary_file_list_file = $configures{'WebDocumentRoot'} . $configures{'configure_export_new_file_path'} . "poc_summary_file_list_p-14.txt";
   open FILESTOPROC, "> $poc_summary_file_list_file" or die "Can't write file $poc_summary_file_list_file: $!\n";
   foreach my $poc_path (@all_poc_summary_files){
     my $poc_modified_path = $poc_path;
@@ -3422,8 +3425,8 @@ sub configure_export {
   # get array of each screen and array of each zscore*rep/median and write out
   # a table as was done for the configure_export sub previously
   
-  my $median_pocscores_file_path = $configures{'WebDocumentRoot'} . $configures{'configure_export_new_file_path'} . "median_pocscores_export_file_complete_p10.txt";
-  my $replicate_pocscores_file_path = $configures{'WebDocumentRoot'} . $configures{'configure_export_new_file_path'} . "replicate_pocscores_export_file_complete_p10.txt";
+  my $median_pocscores_file_path = $configures{'WebDocumentRoot'} . $configures{'configure_export_new_file_path'} . "median_pocscores_export_file_complete_p-14.txt";
+  my $replicate_pocscores_file_path = $configures{'WebDocumentRoot'} . $configures{'configure_export_new_file_path'} . "replicate_pocscores_export_file_complete_p-14.txt";
   
   open MEDOUT, "> $median_pocscores_file_path" or die "Can't write to median pocscores export file: $!\n";
   open REPSOUT, "> $replicate_pocscores_file_path" or die "Can't write to replicate pocscores export file: $!\n";
@@ -3488,8 +3491,8 @@ sub configure_export {
     print REPSOUT "\n";
   }
   
-  my $link_for_median_pocscores = $configures{'hostname'} . $configures{'configure_export_new_file_path'} . "median_pocscores_export_file_complete_p10.txt";
-  my $link_for_replicate_pocscores = $configures{'hostname'} . $configures{'configure_export_new_file_path'} . "replicate_pocscores_export_file_complete_p10.txt";
+  my $link_for_median_pocscores = $configures{'hostname'} . $configures{'configure_export_new_file_path'} . "median_pocscores_export_file_complete_p-14.txt";
+  my $link_for_replicate_pocscores = $configures{'hostname'} . $configures{'configure_export_new_file_path'} . "replicate_pocscores_export_file_complete_p-14.txt";
   
   print "<p></p>";
   print "<a href=\"$link_for_median_pocscores\">Download exported plate 11-12-13 median POC-score data </a></br>";
@@ -3497,7 +3500,7 @@ sub configure_export {
   print "<a href=\"$link_for_replicate_pocscores\">Download exported plate 11-12-13 replicate POC-score data </a>"; 
   
   my $collected_pocscores_dr_path = $configures{'WebDocumentRoot'} . $configures{'configure_export_new_file_path'};
-  my $collected_pocscores_dr_file_path = $configures{'WebDocumentRoot'} . $configures{'configure_export_new_file_path'} . "collected_pocscores_drugresponse_export_file_p10.txt";
+  my $collected_pocscores_dr_file_path = $configures{'WebDocumentRoot'} . $configures{'configure_export_new_file_path'} . "collected_pocscores_drugresponse_export_file_p-14.txt";
   
   my $dr_file_path;
   open ALLDRFILES, "> $collected_pocscores_dr_file_path" or die "collected_pocscores_dr_file_path: $!\n";
@@ -3552,8 +3555,53 @@ sub show_qc {
   my $plateconf = $q -> param ( "plate_conf" );
   
   print "<b>Screen name: $screen_dir_name</b>";
-
+ 
+  my $query = "SELECT QC FROM Drug_screen_info WHERE Drug_screen_name = '$screen_dir_name'";	
+  my $query_handle = $dbh -> prepare ( $query );
+  $query_handle -> execute();
   
+  my $qc_col = undef;
+  while ( $qc_col = $query_handle -> fetchrow_array ) {
+    print "<p></p>";
+    if ($qc_col eq "Pass") {
+      print "<p></p>";
+      print "<div id=\"Message2\"><b>QC: Pass</b></div>";
+    }
+    elsif ($qc_col eq "Fail") {
+      print "<p></p>";
+      print "<div id=\"Message\"><b>QC: Fail</b></div>";
+    }
+    elsif ($qc_col eq "-TBC") {
+      print "<p></p>";
+	  print "<div id=\"Message3\"><b>Assign QC status:</b></div>";
+	  print "<p></p>";
+	  
+	  print "&nbsp;&nbsp;";
+
+	  print $q -> checkbox( -name=>'Pass',
+							-checked=>0,
+							#-onclick=>"enableText()",
+							-value=>'ON',
+							-label=>'Pass' );
+				  
+	  print "&nbsp;&nbsp;";  
+					  
+	  print $q -> checkbox( -name=>'Fail',
+							-checked=>0,
+							#-onclick=>"enableText()",
+							-value=>'ON',
+							-label=>'Fail');
+			
+	  my $Pass = $q -> param ( "Pass" );
+	  my $Fail = $q -> param ( "Fail" );
+
+	  print "<p></p>";
+	  print "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type=\"submit\" id=\"save_qc_status\" value=\"Submit\" name=\"save_qc_status\" onClick=\"return confirm ('You are about to assign the selected QC status to the screen')\"/>"; 
+    }
+  }
+  print "<p></p>";
+  print "<b>Note:- Zprime for controls will be displayed soon</b>";
+
 ###########  my $show_qc_page = $configures{'hostname'} . $configures{'rnai_screen_qc_new_path'} . $screen_dir_name . "_controls_qc.png";
   my $scatter_plot_1 = $configures{'hostname'} . $configures{'rnai_screen_qc_new_path'} . $screen_dir_name . "_qc_plot_file_1.png";
   my $scatter_plot_2 = $configures{'hostname'} . $configures{'rnai_screen_qc_new_path'} . $screen_dir_name . "_qc_plot_file_2.png";
@@ -3634,75 +3682,6 @@ sub show_qc {
    	print "</table>";
    	
    	print "<p></p>";
-   	print "<p></p>";
-   	print "<p></p>";
-    print "<p></p>";
-    print "<p></p>";
-    print "<p></p>";
-    print "<p></p>";
-    
-    print "<h2>Pearson's correlation among normalized data of replicates:</h2>";
-    
-    print "<p></p>";
-    
-    print "<table>";
-    
-    print "<th>";
-    print "Min correlation";
-    print "</th>";
-    
-    print "<th>";
-    print "     ";
-    print "</th>";
-    
-    print "<th>";
-    print "    ";
-    print "</th>"; 
-    
-    print "<th>";
-    print "Max correlation";
-    print "</th>";
-    
-   	my $coco_file = $configures{'WebDocumentRoot'} . $configures{'rnai_screen_corr_new_path'} . $screen_dir_name . "_corr.txt";
-  
-  	open ( IN, "< $coco_file" )
-    	or die "Cannot open $coco_file:$!\n";
- 	while ( <IN> ) {
-    	if ($_ =~ /Min/) {
-      		next;
-    	}
-    	my $line4 = $_;
-    	#print $line;
-    	my( $coco_min, $coco_max ) = split(/\t/, $line4);
-    	$coco_min = sprintf "%.2f", $coco_min;
-    	$coco_max = sprintf "%.2f", $coco_max;
-    
-    	print "<tr>";
-    
-    	print "<td>";
-    	print "$coco_min";
-    	print "</td>";
-    
-    	print "<td>";
-    	print "     ";
-    	print "</td>";
-    
-    	print "<td>";
-    	print "    ";
-    	print "</td>";
-    
-    	print "<td>";
-    	print "$coco_max";
-   	 	print "</td>";
-    
-    	print "</tr>";
-    
-    	print "</table>";
-
-  	}
-  	close IN;
-    
-    print "<p></p>";
   	print "<p></p>";
   	print "<p></p>";
   	print "<p></p>";
@@ -3738,7 +3717,7 @@ sub show_qc {
   #  print "<img src=\"$drc_figs\" > &nbsp;&nbsp;&nbsp;&nbsp;";
     
     print "</td>";
-
+    
   #print "<td align=left valign=top>\n";
   #print "<p>";
   #print "<h1>Reanalysis:</h1>";
@@ -3778,11 +3757,11 @@ sub show_qc {
 
   #print "</p>";
   
-  #print $q -> hidden ( -name => 'screen_dir_name',
-  #					   -value => $screen_dir_name );
+  print $q -> hidden ( -name => 'screen_dir_name',
+  					   -value => $screen_dir_name );
   					  
-  #print $q -> hidden ( -name => 'plate_conf',
-  #					   -value => $plateconf );				  
+  print $q -> hidden ( -name => 'plate_conf',
+  					   -value => $plateconf );				  
   
  ## submit the updated plateconf file for re-analysis ##
                                                 
@@ -3802,6 +3781,53 @@ sub show_qc {
   
 } #end of show_qc subroutine 
 
+# ===============================
+# Subroutine for saving QC status
+# ===============================
+
+sub save_qc_status {
+  print $q -> header ( "text/html" );
+  print "$page_header";
+  
+  my $screen_dir_name = $q -> param ( "screen_dir_name" );
+  my $plateconf = $q -> param ( "plate_conf" );
+  my $Pass = $q -> param ( "Pass" );
+  my $Fail = $q -> param ( "Fail" );
+
+  print "<p></p>";
+  print "<p></p>";
+  
+   if($Pass eq 'ON'){
+  
+    my $query_p = "UPDATE
+				Drug_screen_info SET
+				QC = 'Pass' WHERE
+				Drug_screen_name = '$screen_dir_name'";
+				
+	my $query_handle_p = $dbh -> prepare ( $query_p );
+	$query_handle_p->execute();
+	
+	print "<div id=\"Message3\"><p><b>QC status for $screen_dir_name - 'Pass'</b></p></div>";
+	}
+	 if($Fail eq 'ON'){
+  
+    my $query_f = "UPDATE
+				Drug_screen_info SET
+				QC = 'Fail' WHERE
+				Drug_screen_name = '$screen_dir_name'";
+				
+	my $query_handle_f = $dbh -> prepare ( $query_f );
+	$query_handle_f->execute();
+	
+	print "<div id=\"Message3\"><p><b>QC status for $screen_dir_name - 'Fail'</b></p></div>";
+  	}
+  
+  print "$page_footer";
+  print $q -> end_html;
+  
+} #end of save_qc_status subroutine
+
+
 # ====================================
 # Subroutine for computing drug effect
 # ====================================
@@ -3817,18 +3843,34 @@ sub compute_drug_effect {
 				   						  			<link rel=\"stylesheet\" href=\"http://code.jquery.com/ui/1.11.1/themes/smoothness/jquery-ui.css\">
 				    					  			<script src=\"http://code.jquery.com/jquery-1.10.2.js\"></script>
 				   						  			<script src=\"http://code.jquery.com/ui/1.11.1/jquery-ui.js\"></script>
-				   						  			<script>
-				   						  			function checkForm ( form ) {
-										    			if ( document.computeDrugEffect.dmso_file.selectedIndex == 0 ) {
-										      				alert ( \"Please select dmso screen name\" );
-										      				return false;
-										    			}
-										    			if ( document.computeDrugEffect.drug_file.selectedIndex == 0 ) {
-										      				alert ( \"Please select drug screen name\" );
-										      				return false;
-										    			}
-										  			}
-										  		 </script>
+				   						  			 <script>
+				   						   function make_dmsoID_Blank() {
+										    var b = document.getElementById( \"DMSO_id\" );
+										    if (b.value ==\"Enter screen ID\")
+										    {
+										    	b.value = \"\";
+										    }
+										  }
+										   function make_drugID_Blank() {
+										    var b = document.getElementById( \"DRUG_id\" );
+										    if (b.value ==\"Enter screen ID\")
+										    {
+										    	b.value = \"\";
+										    }
+										  }
+										  function checkForm ( form ) {
+										   if (( form[\"dmso_id\"].value == \"Enter screen ID\") || ( form[\"dmso_id\"].value == \"\")) {
+										      alert ( \"Please enter Drug screen ID 1\" );
+										      return false;
+										    }
+										     if (( form[\"drug_id\"].value == \"Enter screen ID\") || ( form[\"drug_id\"].value == \"\")) {
+										      alert ( \"Please enter Drug screen ID 2\" );
+										      return false;
+										    }
+										        var answer = confirm(\"Click 'Cancel' if you are not sure that you selected the correct screen IDs for computing drug effect\")
+										  	return answer;
+										  }
+										  </script>   
 				   						  		</head>
 				   						  	<body>
 				   						  <div id=\"Box\"></div><div id=\"MainFullWidth\">
@@ -3844,6 +3886,11 @@ sub compute_drug_effect {
 				   						  </p>";
 				   						  
   print "$page_header_for_computing_drug_effect";
+  print "<p></p>"; 
+  print "<p></p>"; 
+  print "<p></p>"; 
+  print "<p></p>"; 
+
   print "<h1>Drug effect analysis:</h1>";
     
   print $q -> start_multipart_form ( -method => "POST",
@@ -3857,80 +3904,33 @@ sub compute_drug_effect {
   ##
   ## add main screen info here ##
   ## 
- 
-  print "<p><b>Select drug screens for analysis:</b></p>";
-  print "<p>";
- 
-  ## get the CTG excel file ##
   
-  print "</p>";
-  
-  my $summary_file_path_1;
-  my $summary_file_dest_1;
-  my $summary_file_name_1;
-  my @summary_file_name_1;
-  my $query = "SELECT Summary_file_path FROM 
-  	 Drug_screen_info WHERE 
-  	 Drug_screen_name LIKE 
-  	 '%_dA' ORDER BY
-  	 'Cell_line' ASC";
-  	
-  my $query_handle = $dbh -> prepare ( $query );
-     				#or die "Cannot prepare: " . $dbh -> errstr();
-  $query_handle -> execute();
-  while ( $summary_file_path_1 = $query_handle -> fetchrow_array ) {
-  $summary_file_dest_1 = $summary_file_path_1;
-  $summary_file_dest_1 =~ s/.*\///;
-  $summary_file_name_1 = $summary_file_dest_1;
-  $summary_file_name_1 =~ s{\.$}{};
-  my ($short_name_1, $file_suffix_1) = split /_zscores_summary/, $summary_file_name_1;
-    push ( @summary_file_name_1, $short_name_1 );
-  }
-  unshift( @summary_file_name_1, "Please select" );
- 
-  print "Screen 1:<br />";
-  
-  print $q -> popup_menu ( -name => 'dmso_file',
-  						   -value => \@summary_file_name_1,
-   						   -default => 'Please select dmso screen name',
-   						   -id => "DMSO_file" );
+ print "Drug screen 1:<br />";
    						   
-  my $summary_file_path_2;
-  my $summary_file_dest_2;
-  my $summary_file_name_2;
-  my @summary_file_name_2;
-  $query = "SELECT Summary_file_path FROM 
-  	 Drug_screen_info WHERE
-  	 Drug_screen_name LIKE 
-  	 '%_dA' ORDER BY
-  	 'Cell_line' ASC";
-  	
-  $query_handle = $dbh -> prepare ( $query );
-     				#or die "Cannot prepare: " . $dbh -> errstr();
-  $query_handle->execute();
-  while ( $summary_file_path_2 = $query_handle -> fetchrow_array ) {
-  	$summary_file_dest_2 = $summary_file_path_2;
-  	$summary_file_dest_2 =~ s/.*\///;
-  	$summary_file_name_2 = $summary_file_dest_2;
-  	$summary_file_name_2 =~ s{\.$}{};
-  	my ($short_name_2, $file_suffix_2) = split /_zscores_summary/, $summary_file_name_2;
-   	push ( @summary_file_name_2, $short_name_2 );
-  }
-  unshift( @summary_file_name_2, "Please select" );
-                          
+  print $q -> textfield ( -name => "dmso_id",
+                         -value => 'Enter screen ID',
+                         -size => "30",
+                         -maxlength => "40",
+                         -onClick => "make_dmsoID_Blank()",
+                         -id => "DMSO_id" );
+ 
   print "<p></p>"; 
                                                   
-  print "Screen 2:<br />";
+  print "Drug screen 2:<br />";
   
-  print $q -> popup_menu ( -name => 'drug_file',
-  						   -value => \@summary_file_name_2,
-   						   -default => 'Please select drug screen name',
-   						   -id => "DRUG_file" );
+  print $q -> textfield ( -name => "drug_id",
+                         -value => 'Enter screen ID',
+                         -size => "30",
+                         -maxlength => "40",
+                         -onClick => "make_drugID_Blank()",
+                         -id => "DRUG_id" );
+                         
+  my $dmso_id = $q -> param( "dmso_id" );
+  my $drug_id = $q -> param( "drug_id" );
   
   print "<p></p>";
 
-  print "<p><b>Analyse and save results:</b><br />";
-  print "<input type=\"submit\" id=\"save_drug_effect_screens\" value=\"Compute drug effect\" name=\"save_drug_effect_screens\" onclick=\"return confirm('You are about to compute DRUG EFFECT for selected drug screens')\"/>";
+  print "<input type=\"submit\" id=\"save_drug_effect_screens\" value=\"Compute drug effect\" name=\"save_drug_effect_screens\" />";
   print "</p>";
   
   print "<td>\n";
@@ -3953,8 +3953,56 @@ sub save_drug_effect_screens {
   print "$page_header";
   print "<h1>Saving screens analysed for drug effect:</h1>";
   
-  my $dmso_file = $q -> param( "dmso_file" );
-  my $drug_file = $q -> param( "drug_file" );
+  my $dmso_id = $q -> param( "dmso_id" );
+  my $drug_id = $q -> param( "drug_id" );
+  
+  my $short_dmso_id = $dmso_id;
+  $short_dmso_id =~ s/gft-D//g;
+  
+  my $summary_file_path_1;
+  my $summary_file_dest_1;
+  my $summary_file_name_1;
+  my $dmso_file;
+
+  my $query = "SELECT 
+     Summary_file_path FROM 
+  	 Drug_screen_info WHERE 
+  	 Drug_screen_info_ID = $short_dmso_id";
+  	
+  my $query_handle = $dbh -> prepare ( $query );
+     				#or die "Cannot prepare: " . $dbh -> errstr();
+  $query_handle->execute();
+  while ( $summary_file_path_1 = $query_handle -> fetchrow_array ) {
+  $summary_file_dest_1 = $summary_file_path_1;
+  $summary_file_dest_1 =~ s/.*\///;
+  $dmso_file = $summary_file_dest_1;
+  #$summary_file_name =~ s{\.[^.]+$}{};
+  $dmso_file =~ s/_zscores_summary.*$//g;
+  }
+  
+  my $short_drug_id = $drug_id;
+  $short_drug_id =~ s/gft-D//g;
+  
+  my $summary_file_path_2;
+  my $summary_file_dest_2;
+  my $summary_file_name_2;
+  my $drug_file;
+  
+  $query = "SELECT 
+     Summary_file_path FROM 
+  	 Drug_screen_info WHERE 
+  	 Drug_screen_info_ID = $short_drug_id";
+  	
+  $query_handle = $dbh -> prepare ( $query );
+     				#or die "Cannot prepare: " . $dbh -> errstr();
+  $query_handle->execute();
+  while ( $summary_file_path_2 = $query_handle -> fetchrow_array ) {
+  $summary_file_dest_2 = $summary_file_path_2;
+  $summary_file_dest_2 =~ s/.*\///;
+  $drug_file = $summary_file_dest_2;
+  #$summary_file_name =~ s{\.[^.]+$}{};
+  $drug_file =~ s/_zscores_summary.*$//g;
+  }
   
   my $scrDir_path = $configures{'screenDir_path'};
   my $screen_DE_dir_name = $q -> param( "screen_DE_dir_name" );
@@ -4018,23 +4066,26 @@ sub save_drug_effect_screens {
   
   print "<a href = \"$link_to_drug_effect_folder\">View drug effect results</a>";
   
-  my $query = "UPDATE
-  	Drug_screen_info SET
-  	Link_to_drug_effect_file = '$link_to_drug_effect_folder' WHERE
-  	Summary_file_path = '$drugSummaryFilePath'"; 
+  my $query = "INSERT INTO 
+				 Drug_effect (
+				 Link_to_drug_effect_file,
+				 Drug_screen_info_Drug_screen_info_ID_1,
+				 Drug_screen_info_Drug_screen_info_ID_2,
+				 Drug_screen_name_1,
+				 Drug_screen_name_2
+				 ) VALUES (
+				 '$link_to_drug_effect_folder',
+				 '$short_dmso_id',
+				 '$short_drug_id',
+				 '$dmso_file',
+				 '$drug_file'
+				 )";
   
   my $query_handle = $dbh->prepare( $query );
    					    #or die "Cannot prepare: " . $dbh -> errstr();
   $query_handle -> execute(); 
-  
-  my $query2 = "UPDATE
-  	Drug_screen_info SET
-  	Link_to_drug_effect_file = '$link_to_drug_effect_folder' WHERE
-  	Summary_file_path = '$dmsoSummaryFilePath'"; 
-  
-  my $query_handle2 = $dbh->prepare( $query2 );
-   					    #or die "Cannot prepare: " . $dbh -> errstr();
-  $query_handle2 -> execute(); 
+
+
   }
   else {
     my $message = "Cannot make new drug effect directory, $screen_DE_dir_name as it already exists.";
@@ -4068,87 +4119,65 @@ sub show_all_drug_effect_screens {
   my $drug_id = $q -> param( "drug_id" );
   my $screen_dir_name = $q -> param ( "screen_dir_name" );
   
-  my $query = "SELECT
-  	GROUP_CONCAT('gft-D',Drug_screen_info_ID SEPARATOR ','),
-  	GROUP_CONCAT(Drug_screen_name SEPARATOR ','),
-  	Link_to_drug_effect_file FROM
-  	Drug_screen_info WHERE
-  	Link_to_drug_effect_file != '' GROUP BY 
-  	Link_to_drug_effect_file";
+ my $query = "SELECT
+   CONCAT('gft-D',Drug_screen_info_Drug_screen_info_ID_1),
+   CONCAT('gft-D',Drug_screen_info_Drug_screen_info_ID_2),
+   Drug_screen_name_1,
+   Drug_screen_name_2,
+   Link_to_drug_effect_file FROM
+   Drug_effect ORDER BY Drug_effect_ID";
   	
   my $query_handle = $dbh -> prepare ( $query );
   $query_handle -> execute();
   
-  #print "<td align=left valign=top>\n";
-  
   print "<th>";
-  print "ID 1";
+  print "ID1";
   print "</th>";
   
   print "<th>";
-  print "ID 2";
+  print "ID2";
   print "</th>";
   
   print "<th>";
-  print "DRUG screen 1";
+  print "Drug screen1";
   print "</th>";
   
   print "<th>";
-  print "DRUG screen 2";
+  print "Drug screen2";
   print "</th>";
   
   print "<th>";
   print "View/download drug effect results";
   print "</th>";
-
- # print "</td>";
  
   while ( my @row = $query_handle -> fetchrow_array ) {
-  
-  	my $screen_id1 = $row[0];
-  	$screen_id1 =~ s/,.*//g;
-  	my $short_screen_id1 = $screen_id1;
-  	$short_screen_id1 =~ s/gft-D//g;
-  	
-  	my $screen_id2 = $row[0];
-  	$screen_id2 =~ s/.*,//g;
-  	my $short_screen_id2 = $screen_id2;
-  	$short_screen_id2 =~ s/gft-D//g;
-  	
-  	my $screen_name1 = $row[1];
-  	$screen_name1 =~ s/,.*//g;
-  	
-  	my $screen_name2 = $row[1];
-  	$screen_name2 =~ s/.*,//g;
   
     print "<tr>";
     
     print "<td align=left valign=top>\n";
     
     print "<td>";
-    #print "<a href=\"$screen_id1\" >$screen_id1</a>";
-    print "<a href=" . $configures{'hostname'} . "cgi-bin/$script_name?show_all_screens=1\&screen_dir_name=$screen_name1>$screen_id1</a>";
+    print "<a href=" . $configures{'hostname'} . "cgi-bin/$script_name?show_all_screens=1\&screen_dir_name=$row[2]>$row[0]</a>";
     print "</td>"; 
     
     print "<td>";
-    print "<a href=" . $configures{'hostname'} . "cgi-bin/$script_name?show_all_screens=1\&screen_dir_name=$screen_name2>$screen_id2</a>";
+    print "<a href=" . $configures{'hostname'} . "cgi-bin/$script_name?show_all_screens=1\&screen_dir_name=$row[3]>$row[1]</a>";
     print "</td>"; 
     
     print "<td>";
-    print "$screen_name1";
+    print "$row[2]";
     print "</td>"; 
     
-    
     print "<td>";
-    print "$screen_name2";
+    print "$row[3]";
     print "</td>"; 
    
     print "<td>";
-    print "<a href=\"$row[2]\" >drugEffect</a>";
+    print "<a href=\"$row[4]\" >drugEffect</a>";
     print "</td>";  
     
   } #end of while loop
-
+  
   print "</table>"; 
     
   print "<td>\n";
@@ -4178,18 +4207,34 @@ sub limma_analysis {
 				    					  			<script src=\"http://code.jquery.com/jquery-1.10.2.js\"></script>
 				   						  			<script src=\"http://code.jquery.com/ui/1.11.1/jquery-ui.js\"></script>
 				   						  			<script>
-				   						  			function checkForm ( form ) {
-										    			if ( document.computeLimma.dmso_file.selectedIndex == 0 ) {
-										      				alert ( \"Please select dmso screen name\" );
-										      				return false;
-										    			}
-										    			if ( document.computeLimma.drug_file.selectedIndex == 0 ) {
-										      				alert ( \"Please select drug screen name\" );
-										      				return false;
-										    			}
-										  			}
-										  		 </script>
-				   						  		</head>
+													  function make_dmsoID_Blank() {
+													   var b = document.getElementById( \"DMSO_id\" );
+													   if (b.value ==\"Enter screen ID\")
+													   {
+														   b.value = \"\";
+													   }
+													 }
+													  function make_drugID_Blank() {
+													   var b = document.getElementById( \"DRUG_id\" );
+													   if (b.value ==\"Enter screen ID\")
+													   {
+														   b.value = \"\";
+													   }
+													 }
+													 function checkForm ( form ) {
+													  if (( form[\"dmso_id\"].value == \"Enter screen ID\") || ( form[\"dmso_id\"].value == \"\")) {
+														 alert ( \"Please enter Drug screen ID 1\" );
+														 return false;
+													   }
+														if (( form[\"drug_id\"].value == \"Enter screen ID\") || ( form[\"drug_id\"].value == \"\")) {
+														 alert ( \"Please enter Drug screen ID 2\" );
+														 return false;
+													   }
+														var answer = confirm(\"Click 'Cancel' and check if you are not sure that you selected the correct screen IDs for Limma analysis\")
+													   return answer;
+													 }
+												</script>   
+				   						  	  </head>
 				   						  	<body>
 				   						  <div id=\"Box\"></div><div id=\"MainFullWidth\">
 				   						  <a href=$configures{'hostname'}><img src=\"http://gft.icr.ac.uk/images/ICR_GFT_drugDB_logo_placeholder.png\" width=415px height=160px></a>
@@ -4218,81 +4263,34 @@ sub limma_analysis {
   ## add main screen info here ##
   ## 
  
-  print "<p><b>Select drug screens for analysis:</b></p>";
-  print "<p>";
+ print "Drug isogenic screen 1:<br />";
+  
+ print $q -> textfield ( -name => "dmso_id",
+                         -value => 'Enter screen ID',
+                         -size => "30",
+                         -maxlength => "40",
+                         -onClick => "make_dmsoID_Blank()",
+                         -id => "DMSO_id" );
  
-  ## get the CTG excel file ##
-  
-  print "</p>";
-  
-  my $summary_file_path_1;
-  my $summary_file_dest_1;
-  my $summary_file_name_1;
-  my @summary_file_name_1;
-  my $query = "SELECT Summary_file_path FROM 
-  	 Drug_screen_info WHERE 
-  	 Drug_screen_name LIKE 
-  	 'IS_%' ORDER BY
-  	 'Cell_line' ASC";
-  	
-  my $query_handle = $dbh -> prepare ( $query );
-     				#or die "Cannot prepare: " . $dbh -> errstr();
-  $query_handle -> execute();
-  while ( $summary_file_path_1 = $query_handle -> fetchrow_array ) {
-  $summary_file_dest_1 = $summary_file_path_1;
-  $summary_file_dest_1 =~ s/.*\///;
-  $summary_file_name_1 = $summary_file_dest_1;
-  $summary_file_name_1 =~ s{\.$}{};
-  my ($short_name_1, $file_suffix_1) = split /_zscores_summary/, $summary_file_name_1;
-    push ( @summary_file_name_1, $short_name_1 );
-  }
-  unshift( @summary_file_name_1, "Please select" );
- 
-  print "screen1:<br />";
-  
-  print $q -> popup_menu ( -name => 'dmso_file',
-  						   -value => \@summary_file_name_1,
-   						   -default => 'Please select dmso screen name',
-   						   -id => "DMSO_file" );
-   						   
-  my $summary_file_path_2;
-  my $summary_file_dest_2;
-  my $summary_file_name_2;
-  my @summary_file_name_2;
-  $query = "SELECT Summary_file_path FROM 
-  	 Drug_screen_info WHERE
-  	 Drug_screen_name LIKE 
-  	 'IS_%' ORDER BY
-  	 'Cell_line' ASC";
-  	
-  $query_handle = $dbh -> prepare ( $query );
-     				#or die "Cannot prepare: " . $dbh -> errstr();
-  $query_handle->execute();
-  while ( $summary_file_path_2 = $query_handle -> fetchrow_array ) {
-  	$summary_file_dest_2 = $summary_file_path_2;
-  	$summary_file_dest_2 =~ s/.*\///;
-  	$summary_file_name_2 = $summary_file_dest_2;
-  	$summary_file_name_2 =~ s{\.$}{};
-  	my ($short_name_2, $file_suffix_2) = split /_zscores_summary/, $summary_file_name_2;
-   	push ( @summary_file_name_2, $short_name_2 );
-  }
-  unshift( @summary_file_name_2, "Please select" );
-                          
   print "<p></p>"; 
                                                   
-  print "screen2:<br />";
+  print "Drug isogenic screen 2:<br />";
   
-  print $q -> popup_menu ( -name => 'drug_file',
-  						   -value => \@summary_file_name_2,
-   						   -default => 'Please select drug screen name',
-   						   -id => "DRUG_file" );
+  print $q -> textfield ( -name => "drug_id",
+                         -value => 'Enter screen ID',
+                         -size => "30",
+                         -maxlength => "40",
+                         -onClick => "make_drugID_Blank()",
+                         -id => "DRUG_id" );
+                                          
+  my $dmso_id = $q -> param( "dmso_id" );
+  my $drug_id = $q -> param( "drug_id" );
   
   print "<p></p>";
   
-  print "<p><b>Limma analysis:</b><br />";
-  print "<input type=\"submit\" id=\"save_limma_analysis\" value=\"Limma analysis\" name=\"save_limma_analysis\" onclick=\"return confirm('You are about to run LIMMA analysis on selected isogenic screens')\"/>";
+  print "<input type=\"submit\" id=\"save_limma_analysis\" value=\"Run Limma analysis\" name=\"save_limma_analysis\"/>";
   print "</p>";
- 
+  
   print "<td>\n";
   print "</tr>\n";
   print "</table>\n";
@@ -4301,8 +4299,7 @@ sub limma_analysis {
   print "$page_footer";
   print $q -> end_html; 
   
-} #end of limma analysis subroutine
-
+} #end of limma_analysis subroutine
 
 # ===================================
 # Subroutine for saving limma results
@@ -4313,11 +4310,78 @@ sub save_limma_analysis {
   print "$page_header";
   print "<h1>Saving limma analysis results:</h1>";
   
-  my $dmso_file = $q -> param( "dmso_file" );
-  my $drug_file = $q -> param( "drug_file" );
+   my $dmso_id = $q -> param( "dmso_id" );
+  my $drug_id = $q -> param( "drug_id" );
+  
+  my $short_dmso_id = $dmso_id;
+  $short_dmso_id =~ s/gft-D//g;
+  
+  my $summary_file_path_1;
+  my $summary_file_dest_1;
+  my $summary_file_name_1;
+  my $dmso_file;
+
+  my $query = "SELECT 
+     Summary_file_path FROM 
+  	 Drug_screen_info WHERE 
+  	 Drug_screen_info_ID = $short_dmso_id";
+  	
+  my $query_handle = $dbh -> prepare ( $query );
+     				#or die "Cannot prepare: " . $dbh -> errstr();
+  $query_handle->execute();
+  while ( $summary_file_path_1 = $query_handle -> fetchrow_array ) {
+  $summary_file_dest_1 = $summary_file_path_1;
+  $summary_file_dest_1 =~ s/.*\///;
+  $dmso_file = $summary_file_dest_1;
+  #$summary_file_name =~ s{\.[^.]+$}{};
+  $dmso_file =~ s/_zscores_summary.*$//g;
+  }
+  
+  my $short_drug_id = $drug_id;
+  $short_drug_id =~ s/gft-D//g;
+  
+  my $summary_file_path_2;
+  my $summary_file_dest_2;
+  my $summary_file_name_2;
+  my $drug_file;
+  
+  $query = "SELECT 
+     Summary_file_path FROM 
+  	 Drug_screen_info WHERE 
+  	 Drug_screen_info_ID = $short_drug_id";
+  	
+  $query_handle = $dbh -> prepare ( $query );
+     				#or die "Cannot prepare: " . $dbh -> errstr();
+  $query_handle->execute();
+  while ( $summary_file_path_2 = $query_handle -> fetchrow_array ) {
+  $summary_file_dest_2 = $summary_file_path_2;
+  $summary_file_dest_2 =~ s/.*\///;
+  $drug_file = $summary_file_dest_2;
+  #$summary_file_name =~ s{\.[^.]+$}{};
+  $drug_file =~ s/_zscores_summary.*$//g;
+  }
+  
   
   my $scrDir_path = $configures{'screenDir_path'};
   my $screen_limma_dir_name = $q -> param( "screen_limma_dir_name" );
+  
+  my $file = $scrDir_path."/".$drug_file."/".$drug_file."_zscores_summary.txt";
+  
+  my $query_gene = "SELECT 
+     Gene_name_if_isogenic,
+     Isogenic_mutant_description FROM 
+  	 Drug_screen_info WHERE 
+  	 Summary_file_path = $file";
+  	
+  my $query_handle_gene = $dbh -> prepare ( $query_gene );
+  $query_handle_gene -> execute();
+  my @gene_info=();
+  my $gene;
+  while ( @gene_info = $query_handle_gene -> fetchrow_array ) {
+    $gene = $gene_info[0];
+  }
+
+  print"<p>Gene:$gene</p>";
   
   if ( not defined ( $screen_limma_dir_name ) ) {
    
@@ -4350,6 +4414,11 @@ sub save_limma_analysis {
   	`cp $dmsoFilePath $limma_file_path`;
   	`cp $drugFilePath $limma_file_path`;
   	
+  	open GENEFILE, '>', $limma_file_path."gene.txt" 
+      or die "Cannot open $limma_file_path:$!\n";
+     print "$gene\n";
+	close GENEFILE;
+	
   	my $run_limma_analysis_script = `cd $limma_file_path && mv $dmsoFile $summaryFile1 && mv $drugFile $summaryFile2 && R --vanilla < $configures{'limma_analysis'}`;
   
   	my $limmaFilePath = $limma_file_path.$screen_limma_dir_name.".txt";
@@ -4368,50 +4437,34 @@ sub save_limma_analysis {
   	print "<p></p>";
   
   	print "<p>Limma analysis results for:</p>";
-  	print "<p><b>Screen 1:- $dmso_file</b></p>";
-  	print "<p><b>Screen 2:- $drug_file</b></p>";
+  	print "<p><b>Drug isogenic screen 1:- $dmso_file</b></p>";
+  	print "<p><b>Drug isogenic screen 2:- $drug_file</b></p>";
   
   	print "<p></p>";
   
-  	print "<a href = \"$link_to_limma_folder\">View/download limma table</a>";
+  	print "<a href = \"$link_to_limma_folder\">View limma table</a>";
   	print "<p></p>";
-  	print "<a href = \"$link_to_limma_plot\">View/download limma plot</a>";
+  	print "<a href = \"$link_to_limma_plot\">View limma plot</a>";
   
-  	my $query = "UPDATE
-  	  Drug_screen_info SET
-  	  Link_to_limma_file = '$link_to_limma_folder' WHERE
-  	  Summary_file_path = '$drugSummaryFilePath'"; 
-  
-  	my $query_handle = $dbh->prepare( $query );
-   					    #or die "Cannot prepare: " . $dbh -> errstr();
-	$query_handle -> execute(); 
-	
-	my $query_3 = "UPDATE
-  	  Drug_screen_info SET
-  	  Link_to_limma_plots = '$link_to_limma_plot' WHERE
-  	  Summary_file_path = '$drugSummaryFilePath'"; 
-  
-  	my $query_handle_3 = $dbh->prepare( $query_3 );
-   					    #or die "Cannot prepare: " . $dbh -> errstr();
-	$query_handle_3 -> execute(); 
-  
-  	my $query2 = "UPDATE
-  	  Drug_screen_info SET
-  	  Link_to_limma_file = '$link_to_limma_folder' WHERE
-  	  Summary_file_path = '$dmsoSummaryFilePath'"; 
-  
-  	my $query_handle2 = $dbh->prepare( $query2 );
-   					    #or die "Cannot prepare: " . $dbh -> errstr();
-  	$query_handle2 -> execute(); 
-  	
-  	my $query_4 = "UPDATE
-  	  Drug_screen_info SET
-  	  Link_to_limma_plots = '$link_to_limma_plot' WHERE
-  	  Summary_file_path = '$dmsoSummaryFilePath'"; 
-  
-  	my $query_handle_4 = $dbh->prepare( $query_4 );
-   					    #or die "Cannot prepare: " . $dbh -> errstr();
-	$query_handle_4 -> execute(); 
+     my $query = "INSERT INTO 
+				   Limma_table (
+				   Link_to_limma_file,
+				   Link_to_limma_plots,
+				   Drug_screen_info_Drug_screen_info_ID_1,
+				   Drug_screen_info_Drug_screen_info_ID_2,
+				   Drug_screen_name_1,
+				   Drug_screen_name_2
+				   ) VALUES (
+				   '$link_to_limma_folder',
+				   '$link_to_limma_plot',
+				   '$short_dmso_id',
+				   '$short_drug_id',
+				   '$dmso_file',
+				   '$drug_file'
+				   )";
+				   	
+  my $query_handle = $dbh -> prepare ( $query );
+  $query_handle -> execute();
 	
   }
   else {
@@ -4443,87 +4496,72 @@ sub show_all_limma_screens {
   print "<tr>\n";
   print "<td align=left valign=top>\n";
   
-  my $query = "SELECT
-  	GROUP_CONCAT('gft-D',Drug_screen_info_ID SEPARATOR ','),
-  	GROUP_CONCAT(Drug_screen_name SEPARATOR ','),
-  	Link_to_limma_file,
-  	Link_to_limma_plots FROM
-  	Drug_screen_info WHERE
-  	Link_to_limma_file != '' AND
-  	Link_to_limma_plots != '' GROUP BY 
-  	Link_to_limma_file";
+ my $query = "SELECT
+				 CONCAT('gft-D',Drug_screen_info_Drug_screen_info_ID_1),
+				 CONCAT('gft-D',Drug_screen_info_Drug_screen_info_ID_2),
+				 Drug_screen_name_1,
+				 Drug_screen_name_2,
+				 Link_to_limma_file,
+				 Link_to_limma_plots FROM
+				 Limma_table ORDER BY Limma_table_ID";
   	
   my $query_handle = $dbh -> prepare ( $query );
   $query_handle -> execute();
  
   print "<th>";
-  print "ID 1";
+  print "ID1";
   print "</th>";
   
   print "<th>";
-  print "ID 2";
+  print "ID2";
   print "</th>";
   
   print "<th>";
-  print "DRUG screen 1";
+  print "Drug isogenic screen1";
   print "</th>";
   
   print "<th>";
-  print "DRUG screen 2";
+  print "Drug isogenic screen2";
   print "</th>";
   
   print "<th>";
-  print "View/download Limma table";
+  print "View/download Limma analysis table";
   print "</th>";
-     
+   
   print "<th>";
-  print "View/download Limma plot";
+  print "View/download Limma analysis plots";
   print "</th>";
-
+ 
   while ( my @row = $query_handle -> fetchrow_array ) {
-  
-  	my $screen_id1 = $row[0];
-  	$screen_id1 =~ s/,.*//g;
-  	
-  	my $screen_id2 = $row[0];
-  	$screen_id2 =~ s/.*,//g;
-  	
-  	my $screen_name1 = $row[1];
-  	$screen_name1 =~ s/,.*//g;
-  	
-  	my $screen_name2 = $row[1];
-  	$screen_name2 =~ s/.*,//g;
   
     print "<tr>";
     
     print "<td align=left valign=top>\n";
     
     print "<td>";
-    print "<a href=\"$screen_id1\" >$screen_id1</a>";
+    print "<a href=" . $configures{'hostname'} . "cgi-bin/$script_name?show_all_screens=1\&screen_dir_name=$row[2]>$row[0]</a>";
     print "</td>"; 
     
     print "<td>";
-    print "<a href=\"$screen_id2\" >$screen_id2</a>";
+    print "<a href=" . $configures{'hostname'} . "cgi-bin/$script_name?show_all_screens=1\&screen_dir_name=$row[3]>$row[1]</a>";
     print "</td>"; 
     
     print "<td>";
-    print "$screen_name1";
+    print "$row[2]";
     print "</td>"; 
     
-    
     print "<td>";
-    print "$screen_name2";
+    print "$row[3]";
     print "</td>"; 
    
     print "<td>";
-    print "<a href=\"$row[2]\" >Limma results</a>";
-    print "</td>"; 
-    
+    print "<a href=\"$row[4]\" >LimmaTable</a>";
+    print "</td>";  
     
     print "<td>";
-    print "<a href=\"$row[3]\" >Limma plot</a>";
-    print "</td>";   
-    
+    print "<a href=\"$row[5]\" >LimmaPlot</a>";
+    print "</td>";  
+        
   } #end of while loop
 
   print "</table>"; 
@@ -4536,8 +4574,7 @@ sub show_all_limma_screens {
   print "$page_footer";
   print $q -> end_html; 
   
-} # end of show_all_limma_screens subroutine
-
+} # end of show_all_drug_effect_screens subroutine
 
 ##########################################################################################
 

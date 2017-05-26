@@ -2,7 +2,7 @@
 ## export all p11-12-13 cellHTS2 zscores 
 ##
 
-z_summaryFileList <- "z_summary_file_list.txt"
+z_summaryFileList <- "z_summary_file_list_p-14.txt"
 
 z_summaryFiles <- read.table(
   z_summaryFileList,

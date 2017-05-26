@@ -101,7 +101,7 @@ drug_effect <- data.frame(
   dmso[ ,"plate"], 
   dmso[ ,"well"], 
   dmso$GeneID,
-  dmso$Entrez_gene_ID,
+  dmso$Function,
   Sample, 
   dmso[ ,"raw_r1_ch1"], 
   dmso[ ,"raw_r2_ch1"], 
@@ -116,7 +116,7 @@ colnames(drug_effect) <- cbind(
   "Plate", 
   "Well",
   "Mature_Sanger_ID",
-  "PreCursor",
+  "Function",
   "Sample", 
   "dmso_r1_ch1", 
   "dmso_r2_ch1", 
@@ -329,7 +329,7 @@ for (column in 1:ncol(plate_centered_columns)) {
 drug_effect <- cbind(drug_effect, zscore_columns)
 
 names(drug_effect)[27] <- paste("dmso_Zscore") 
-names(drug_effect)[28] <- paste("dmso_Zscore")
+names(drug_effect)[28] <- paste("drug_Zscore")
 names(drug_effect)[29] <- paste("DE_Zscore")  
 
 ##
