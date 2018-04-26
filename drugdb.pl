@@ -1401,7 +1401,7 @@ sub save_new_screen {
     $compound_concentration = "";
   }
 
-  $compound_concentration =~ s/[^A-Z0-9_-]*//g;
+  $compound_concentration =~ s/[^A-Za-z0-9_-\d.]*//g;
   
   $isogenic_mutant_description =~ s/\s+//g;
   
@@ -3113,7 +3113,8 @@ sub configure_export {
   my $query = "SELECT
 			  Summary_file_path FROM
 			  Drug_screen_info WHERE
-			  Compound_library_name like '%p14%'";
+			  Compound_library_name like '%p11%' AND
+			  Drug_screen_info_ID > '3947'";
 
   my $query_handle = $dbh -> prepare ( $query );
    					   #or die "Cannot prepare: " . $dbh -> errstr();
@@ -3126,7 +3127,7 @@ sub configure_export {
   
   # write the list of cleaned up paths to a file that can be read by R to
   # find the summary files to process
-  my $summary_file_list_file = $configures{'WebDocumentRoot'} . $configures{'configure_export_new_file_path'} . "z_summary_file_list_p-14.txt";
+  my $summary_file_list_file = $configures{'WebDocumentRoot'} . $configures{'configure_export_new_file_path'} . "z_summary_file_list_p-11_12_180321.txt";
   open FILESTOPROC, "> $summary_file_list_file" or die "Can't write file $summary_file_list_file: $!\n";
   foreach my $path (@all_summary_files){
     my $modified_path = $path;
@@ -3155,7 +3156,8 @@ sub configure_export {
   my %median_zscores;
   my %replicate_zscores;
   my @rowname_filenames = ();
-  my @colname_sirna_info = ();  
+  my @colname_sirna_info = ();
+  print "<p>@all_summary_files</p>";  
   foreach my $path (@all_summary_files){
     my $modified_path = $path;
     $modified_path =~ s/\.txt$/_with_rep_zscores.txt/;
@@ -3181,13 +3183,13 @@ sub configure_export {
       elsif($col_names[$i] eq 'Concentration_pM' | $col_names[$i] eq 'Concentration.pM.'){
         $conc_col = $i;
       }
-      elsif($col_names[$i] eq 'zscore_rep1'){
+      elsif($col_names[$i] eq 'zscore_rep1' | $col_names[$i] eq '1.Channel 1'){
         $rep1_col = $i;
       }
-      elsif($col_names[$i] eq 'zscore_rep2'){
+      elsif($col_names[$i] eq 'zscore_rep2' | $col_names[$i] eq '2.Channel 1'){
         $rep2_col = $i;
       }
-      elsif($col_names[$i] eq 'zscore_rep3'){
+      elsif($col_names[$i] eq 'zscore_rep3' | $col_names[$i] eq '3.Channel 1'){
         $rep3_col = $i;
       }
     }
@@ -3230,8 +3232,8 @@ sub configure_export {
   # get array of each screen and array of each zscore*rep/median and write out
   # a table as was done for the configure_export sub previously
   
-  my $median_zscores_file_path = $configures{'WebDocumentRoot'} . $configures{'configure_export_new_file_path'} . "median_drug_zscores_export_file_complete_p-14.txt";
-  my $replicate_zscores_file_path = $configures{'WebDocumentRoot'} . $configures{'configure_export_new_file_path'} . "replicate_drug_zscores_export_file_complete_p-14.txt";
+  my $median_zscores_file_path = $configures{'WebDocumentRoot'} . $configures{'configure_export_new_file_path'} . "median_drug_zscores_export_file_complete_p-11_12_180321.txt";
+  my $replicate_zscores_file_path = $configures{'WebDocumentRoot'} . $configures{'configure_export_new_file_path'} . "replicate_drug_zscores_export_file_complete_p-11_12_180321.txt";
   
   open MEDOUT, "> $median_zscores_file_path" or die "Can't write to median zscores export file: $!\n";
   open REPSOUT, "> $replicate_zscores_file_path" or die "Can't write to replicate zscores export file: $!\n";
@@ -3296,8 +3298,8 @@ sub configure_export {
     print REPSOUT "\n";
   }
   
-  my $link_for_median_zscores = $configures{'hostname'} . $configures{'configure_export_new_file_path'} . "median_drug_zscores_export_file_complete_p-14.txt";
-  my $link_for_replicate_zscores = $configures{'hostname'} . $configures{'configure_export_new_file_path'} . "replicate_drug_zscores_export_file_complete_p-14.txt";
+  my $link_for_median_zscores = $configures{'hostname'} . $configures{'configure_export_new_file_path'} . "median_drug_zscores_export_file_complete_p-11_12_180321.txt";
+  my $link_for_replicate_zscores = $configures{'hostname'} . $configures{'configure_export_new_file_path'} . "replicate_drug_zscores_export_file_complete_p-11_12_180321.txt";
   
   print "<a href=\"$link_for_median_zscores\">Download exported plate 11-12-13-14 median Z-score data </a></br>";
   print "<p></p>";
@@ -3313,7 +3315,8 @@ sub configure_export {
   $query = "SELECT
 			  Summary_pocscores_file_path FROM
 			  Drug_screen_info WHERE
-			  Compound_library_name like '%p14%'";
+			  Compound_library_name like '%p11%' AND
+			  Drug_screen_info_ID > '3947'";
 
   $query_handle = $dbh -> prepare ( $query );
    					   #or die "Cannot prepare: " . $dbh -> errstr();
@@ -3330,7 +3333,7 @@ sub configure_export {
   
   # write the list of cleaned up paths to a file that can be read by R to
   # find the summary files to process
-  my $poc_summary_file_list_file = $configures{'WebDocumentRoot'} . $configures{'configure_export_new_file_path'} . "poc_summary_file_list_p-14.txt";
+  my $poc_summary_file_list_file = $configures{'WebDocumentRoot'} . $configures{'configure_export_new_file_path'} . "poc_summary_file_list_p-11_12_180321.txt";
   open FILESTOPROC, "> $poc_summary_file_list_file" or die "Can't write file $poc_summary_file_list_file: $!\n";
   foreach my $poc_path (@all_poc_summary_files){
     my $poc_modified_path = $poc_path;
@@ -3425,8 +3428,8 @@ sub configure_export {
   # get array of each screen and array of each zscore*rep/median and write out
   # a table as was done for the configure_export sub previously
   
-  my $median_pocscores_file_path = $configures{'WebDocumentRoot'} . $configures{'configure_export_new_file_path'} . "median_pocscores_export_file_complete_p-14.txt";
-  my $replicate_pocscores_file_path = $configures{'WebDocumentRoot'} . $configures{'configure_export_new_file_path'} . "replicate_pocscores_export_file_complete_p-14.txt";
+  my $median_pocscores_file_path = $configures{'WebDocumentRoot'} . $configures{'configure_export_new_file_path'} . "median_pocscores_export_file_complete_p-11_12_180321.txt";
+  my $replicate_pocscores_file_path = $configures{'WebDocumentRoot'} . $configures{'configure_export_new_file_path'} . "replicate_pocscores_export_file_complete_p-11_12_180321.txt";
   
   open MEDOUT, "> $median_pocscores_file_path" or die "Can't write to median pocscores export file: $!\n";
   open REPSOUT, "> $replicate_pocscores_file_path" or die "Can't write to replicate pocscores export file: $!\n";
@@ -3491,8 +3494,8 @@ sub configure_export {
     print REPSOUT "\n";
   }
   
-  my $link_for_median_pocscores = $configures{'hostname'} . $configures{'configure_export_new_file_path'} . "median_pocscores_export_file_complete_p-14.txt";
-  my $link_for_replicate_pocscores = $configures{'hostname'} . $configures{'configure_export_new_file_path'} . "replicate_pocscores_export_file_complete_p-14.txt";
+  my $link_for_median_pocscores = $configures{'hostname'} . $configures{'configure_export_new_file_path'} . "median_pocscores_export_file_complete_p-11_12_180321.txt";
+  my $link_for_replicate_pocscores = $configures{'hostname'} . $configures{'configure_export_new_file_path'} . "replicate_pocscores_export_file_complete_p-11_12_180321.txt";
   
   print "<p></p>";
   print "<a href=\"$link_for_median_pocscores\">Download exported plate 11-12-13 median POC-score data </a></br>";
@@ -3500,7 +3503,7 @@ sub configure_export {
   print "<a href=\"$link_for_replicate_pocscores\">Download exported plate 11-12-13 replicate POC-score data </a>"; 
   
   my $collected_pocscores_dr_path = $configures{'WebDocumentRoot'} . $configures{'configure_export_new_file_path'};
-  my $collected_pocscores_dr_file_path = $configures{'WebDocumentRoot'} . $configures{'configure_export_new_file_path'} . "collected_pocscores_drugresponse_export_file_p-14.txt";
+  my $collected_pocscores_dr_file_path = $configures{'WebDocumentRoot'} . $configures{'configure_export_new_file_path'} . "collected_pocscores_drugresponse_export_file_p-11_12_180321.txt";
   
   my $dr_file_path;
   open ALLDRFILES, "> $collected_pocscores_dr_file_path" or die "collected_pocscores_dr_file_path: $!\n";
